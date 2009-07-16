@@ -317,43 +317,7 @@ var ProtoMultiSelect = Class.create(TextboxList, {
                         });
                 }
             }
-            var count = 0;
-            matches.each(
-                function(result, ti) {
-                    count++;
-                    if(ti >= (this.options.get('maxResults') ? this.options.get('maxResults') : this.loptions.get('autocomplete').maxresults)) return;
-                    var that = this;
-                    var el = new Element('li');
-                    el.observe('click',function(e) {
-                        e.stop();
-                        that.current_input = "";
-                        that.autoAdd(this);
-                    }
-                              ).observe('mouseover', function() { that.autoFocus(this); } ).update(
-                                  this.autoHighlight(result.evalJSON(true).caption, search)
-                              );
-                    this.autoresults.insert(el);
-                    el.cacheData('result', result.evalJSON(true));
-                    if(ti == 0) this.autoFocus(el);
-                },
-                this
-            );
-        }
-        if (count == 0) {
-            // if there are no results, hide everything so that KEY_ENTER has no effect
-            this.autoHide();
-        } else {
-            if (count > this.options.get('results'))
-                this.autoresults.setStyle({'height': (this.options.get('results')*24)+'px'});
-            else
-                this.autoresults.setStyle({'height': (count?(count*24):0)+'px'});
-        }
-<<<<<<< HEAD:js/multi_select.js
 
-        return this;
-    },
-=======
-      }
       var count = 0;
       matches.each(
         function(result, ti) {
