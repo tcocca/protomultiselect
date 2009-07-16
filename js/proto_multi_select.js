@@ -89,14 +89,14 @@ var TextboxList = Class.create({
     document.observe(
       'keyup', function(e) {
         e.stop();
-        if(! this.current) return nil;
+        if(! this.current) return null;
         switch(e.keyCode){
           case Event.KEY_LEFT: return this.move('left');
           case Event.KEY_RIGHT: return this.move('right');
           case Event.KEY_DELETE:
           case Event.KEY_BACKSPACE: return this.moveDispose();
         }
-	return nil;
+	return null;
       }.bind(this)).observe(
       'click', function() { document.fire('blur'); }.bindAsEventListener(this)
     );
@@ -222,7 +222,7 @@ var TextboxList = Class.create({
   moveDispose: function() {
     if(this.current.retrieveData('type') == 'box') return this.dispose(this.current);
       if(this.checkInput() && this.bits.keys().length && this.current.previous()) return this.focus(this.current.previous());
-      return nil;
+      return null;
   }
 });
 
@@ -302,7 +302,10 @@ var ProtoMultiSelect = Class.create(TextboxList, {
                     for (var i=0,len=this.data_searchable.length; i<len; i++) {
                         if (this.data_searchable[i].indexOf(search) >= 0) {
                             var v=this.data[i];
-                            matches[matches_found++] = v;
+                            if (v !== undefined)
+                            {
+                              matches[matches_found++] = v;
+                            }
                         }
                     }
                 }
@@ -366,14 +369,14 @@ var ProtoMultiSelect = Class.create(TextboxList, {
   },
 
   autoFocus: function(el) {
-    if(! el) return nil;
+    if(! el) return null;
     if(this.autocurrent) this.autocurrent.removeClassName('auto-focus');
     this.autocurrent = el.addClassName('auto-focus');
     return this;
   },
 
   autoMove: function(direction) {
-    if(!this.resultsshown) return nil;
+    if(!this.resultsshown) return null;
     this.autoFocus(this.autocurrent[(direction == 'up' ? 'previous' : 'next')]());
     this.autoresults.scrollTop = this.autocurrent.positionedOffset()[1]-this.autocurrent.getHeight();
     return this;
@@ -393,7 +396,7 @@ var ProtoMultiSelect = Class.create(TextboxList, {
       this.add({caption: el.value, value: el.value, newValue: true});
       var input = el;
     } else if(!el || ! el.retrieveData('result')) {
-      return nil;
+      return null;
     } else {
       this.add(el.retrieveData('result'));
       delete this.data[this.data.indexOf(Object.toJSON(el.retrieveData('result')))];
@@ -436,7 +439,7 @@ var ProtoMultiSelect = Class.create(TextboxList, {
         default:
           this.dosearch = true;
       }
-      return nil;
+      return null;
     }.bind(this));
     input.observe('keyup',function(e) {
       switch(e.keyCode) {
