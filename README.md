@@ -111,5 +111,5 @@ Copyright: InteRiders <http://interiders.com/> - Distributed under MIT - Keep th
   - Renamed main class from FacebookList to MultiSelect. I don't like calling it Facebook becouse of trademark issues.  Plus it's confusingly called that in the docs.
   - Went through file with Emacs JS2 mode and fixed errors identified, mostly missing commas and semicolons.
   - Ignore Emacs backup and OSX .DS_Store files
-
+  - added new method insertCurrent, which will add whatever is currently in the input box as an element.   Set enter to add elements along with comma.
 
