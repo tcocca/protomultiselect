@@ -35,43 +35,43 @@ Element.addMethods({
 	{
 		return this[$(element).identify()].get(key);
 	},
-  
+	
 	onBoxDispose: function(item, obj)
-  {
-    // Set to not to "add back" values in the drop-down upon delete if they were new value
-	  item = item.retrieveData('text').evalJSON(true);
-    if (!item.newValue)	obj.autoFeed(item);
+	{
+		// Set to not to "add back" values in the drop-down upon delete if they were new value
+		item = item.retrieveData('text').evalJSON(true);
+		if (!item.newValue)	obj.autoFeed(item);
 	},
-  
+	
 	onInputFocus: function(el, obj)
-  {
-    obj.autoShow();
-  },
-  
-  onInputBlur: function(el, obj)
-  {
+	{
+		obj.autoShow();
+	},
+	
+	onInputBlur: function(el, obj)
+	{
 		obj.lastinput = el;
 		if (!obj.curOn)
-    {
-		  obj.blurhide = obj.autoHide.bind(obj).delay(0.1);
+		{
+			obj.blurhide = obj.autoHide.bind(obj).delay(0.1);
 		}
 	},
-  
-  /*
+	
+	/*
 	filter: function(D, E)
-  {
-    var arr = [];
-    for (var i = 0, i < this.length; i++)
-    {
-      if (D.call(E, this[i], i, this))
-      {
-        arr.push(this[i]);
-      }
-    }
-    
-    return arr;
-  }
-  */
+	{
+		var arr = [];
+		for (var i = 0, i < this.length; i++)
+		{
+			if (D.call(E, this[i], i, this))
+			{
+				arr.push(this[i]);
+			}
+		}
+		
+		return arr;
+	}
+	*/
 });
 
 function $pick()
@@ -142,7 +142,8 @@ var TextboxList = Class.create({
 			wordMatch: false,
 			onEmptyInput: function(input){},
 			caseSensitive: false,
-			regexSearch: true
+			regexSearch: true,
+			loadFromInput: true
 		});
 		
 		this.current_input = "";
@@ -395,7 +396,7 @@ var TextboxList = Class.create({
 });
 
 var ProtoMultiSelect = Class.create(TextboxList, {
-	initialize: function($super,element, autoholder, options, func)
+	initialize: function($super, element, autoholder, options, func)
 	{
 		$super(element, options);
 		this.loptions = $H({
@@ -410,9 +411,14 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 
 		this.data = [];
 		this.data_searchable = [];
-		this.autoholder = $(autoholder).setOpacity(this.loptions.get('autocomplete').opacity);
-		this.autoholder.observe('mouseover',function() {this.curOn = true;}.bind(this))
-			.observe('mouseout',function() {this.curOn = false;}.bind(this));
+		
+		// Defines the div that contains autocomplete values
+		this.autoholder = $(autoholder) || this.createAutoholder(autoholder)
+		this.autoholder.setOpacity(this.loptions.get('autocomplete').opacity)
+			.observe('mouseover', function() { this.curOn = true; }.bind(this))
+			.observe('mouseout', function() { this.curOn = false; }.bind(this));
+
+		// Defines the autocomplete list
 		this.autoresults = this.autoholder.select('ul').first();
 		
 		var children = this.autoresults.select('li');
@@ -433,128 +439,154 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 				}.bind(this)
 			});
 		}
+		else if (!Object.isUndefined(this.options.get('feed')))
+		{
+			this.options.get('feed').each(function(t) { this.autoFeed(t) }.bind(this));
+		}
+
+		if (this.options.get('loadFromInput'))
+		{
+			var input_values = this.element.value.split(',');
+			var data_loaded = !!this.data.length
+
+			this.data.select(function(el) { return input_values.include(el.evalJSON(true).value) }).each(function(el)
+			{
+				el = el.evalJSON(true);
+				this.add({ value: el.value, caption: el.caption});
+				delete this.data[this.data.indexOf(Object.toJSON(el))];
+				input_values = input_values.without(el.value);
+			}, this);
+			
+			input_values.each(function(el)
+			{
+				this.add({ value: el, caption: el });
+			}, this);
+		}
 	},
 
-  autoShow: function(search)
-  {
-    this.autoholder.setStyle({'display': 'block'});
-    this.autoholder.descendants().each(function(e) { e.hide(); });
-    
-    if (!search || !search.strip() || (!search.length || search.length < this.loptions.get('autocomplete').minchars))
-    {
-      this.autoholder.select('.default').first().setStyle({'display': 'block'});
-      this.resultsshown = false;
-    }
-    else
-    {
-      this.resultsshown = true;
-      this.autoresults.setStyle({'display': 'block'}).update('');
-      
-      if (!this.options.get('regexSearch'))
-      {
-        var matches = new Array();
-        if (search)
-        {
-          if (!this.options.get('caseSensitive'))
-          {
-            search = search.toLowerCase();
-          }
-          
-          for (var matches_found = 0, i = 0, len = this.data_searchable.length; i < len; i++)
-          {
-            if (this.data_searchable[i].indexOf(search) >= 0)
-            {
-              var v = this.data[i];
-              if (v !== undefined)
-              {
-                matches[matches_found++] = v;
-              }
-            }
-          }
-        }
-      }
-      else
-      {
-        if (this.options.get('wordMatch'))
-        {
-          var regexp = new RegExp("(^|\\s)"+search,(!this.options.get('caseSensitive') ? 'i' : ''));
-        }
-        else
-        {
-          var regexp = new RegExp(search,(!this.options.get('caseSensitive') ? 'i' : ''));
-        }
-        
-        var matches = this.data.filter(
-          function(str)
-          {
-            return str ? regexp.test(str.evalJSON(true).caption) : false;
-          }
-        );
-      }
-      
-      var count = 0;
-      matches.each(
-        function(result, ti)
-        {
-          count++;
-          if (ti >= (this.options.get('maxResults') ? this.options.get('maxResults') : this.loptions.get('autocomplete').maxresults)) return;
-          
-          var that = this;
-          var el = new Element('li');
-          el.observe('click', function(e)
-            {
-              e.stop();
-              that.current_input = "";
-              that.autoAdd(this);
-            })
-            .observe('mouseover', function() { that.autoFocus(this); } )
-            .update(this.autoHighlight(result.evalJSON(true).caption, search));
-          
-          this.autoresults.insert(el);
-          el.cacheData('result', result.evalJSON(true));
-          if (ti == 0) this.autoFocus(el);
-        }, this
-      );
-    }
-  
-    if (count == 0)
-    {
-      // if there are no results, hide everything so that KEY_ENTER has no effect
-      this.autoHide();
-    }
-    else
-    {
-      if (count > this.options.get('results'))
-      {
-        this.autoresults.setStyle({'height': (this.options.get('results')*24)+'px'});
-      }
-      else
-      {
-        this.autoresults.setStyle({'height': (count?(count*24):0)+'px'});
-      }
-    }
-    
-    return this;
-  },
-  
+	autoShow: function(search)
+	{
+		this.autoholder.setStyle({'display': 'block'});
+		this.autoholder.descendants().each(function(e) { e.hide(); });
+		
+		if (!search || !search.strip() || (!search.length || search.length < this.loptions.get('autocomplete').minchars))
+		{
+			if (this.autoholder.select('.default').first())
+			{
+				this.autoholder.select('.default').first().setStyle({'display': 'block'});
+			}
+			this.resultsshown = false;
+		}
+		else
+		{
+			this.resultsshown = true;
+			this.autoresults.setStyle({'display': 'block'}).update('');
+			
+			if (!this.options.get('regexSearch'))
+			{
+				var matches = new Array();
+				if (search)
+				{
+					if (!this.options.get('caseSensitive'))
+					{
+						search = search.toLowerCase();
+					}
+					
+					for (var matches_found = 0, i = 0, len = this.data_searchable.length; i < len; i++)
+					{
+						if (this.data_searchable[i].indexOf(search) >= 0)
+						{
+							var v = this.data[i];
+							if (v !== undefined)
+							{
+								matches[matches_found++] = v;
+							}
+						}
+					}
+				}
+			}
+			else
+			{
+				if (this.options.get('wordMatch'))
+				{
+					var regexp = new RegExp("(^|\\s)"+search,(!this.options.get('caseSensitive') ? 'i' : ''));
+				}
+				else
+				{
+					var regexp = new RegExp(search,(!this.options.get('caseSensitive') ? 'i' : ''));
+				}
+				
+				var matches = this.data.filter(
+					function(str)
+					{
+						return str ? regexp.test(str.evalJSON(true).caption) : false;
+					}
+				);
+			}
+			
+			var count = 0;
+			matches.each(
+				function(result, ti)
+				{
+					count++;
+					if (ti >= (this.options.get('maxResults') ? this.options.get('maxResults') : this.loptions.get('autocomplete').maxresults)) return;
+					
+					var that = this;
+					var el = new Element('li');
+					el.observe('click', function(e)
+						{
+							e.stop();
+							that.current_input = "";
+							that.autoAdd(this);
+						})
+						.observe('mouseover', function() { that.autoFocus(this); } )
+						.update(this.autoHighlight(result.evalJSON(true).caption, search));
+					
+					this.autoresults.insert(el);
+					el.cacheData('result', result.evalJSON(true));
+					if (ti == 0) this.autoFocus(el);
+				}, this
+			);
+		}
+	
+		if (count == 0)
+		{
+			// if there are no results, hide everything so that KEY_ENTER has no effect
+			this.autoHide();
+		}
+		else
+		{
+			if (count > this.options.get('results'))
+			{
+				this.autoresults.setStyle({'height': (this.options.get('results')*24)+'px'});
+			}
+			else
+			{
+				this.autoresults.setStyle({'height': (count?(count*24):0)+'px'});
+			}
+		}
+		
+		return this;
+	},
+	
 	autoHighlight: function(html, highlight)
-  {
+	{
 		return html.gsub(new RegExp(highlight,'i'), function(match)
-      {
-        return '<em>' + match[0] + '</em>';
-      }
-    );
+			{
+				return '<em>' + match[0] + '</em>';
+			}
+		);
 	},
 
 	autoHide: function()
-  {
+	{
 		this.resultsshown = false;
 		this.autoholder.hide();
 		return this;
 	},
 
 	autoFocus: function(el)
-  {
+	{
 		if (!el) return null;
 		if (this.autocurrent) this.autocurrent.removeClassName('auto-focus');
 		this.autocurrent = el.addClassName('auto-focus');
@@ -562,7 +594,7 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 	},
 
 	autoMove: function(direction)
-  {
+	{
 		if (!this.resultsshown) return null;
 		this.autoFocus(this.autocurrent[(direction == 'up' ? 'previous' : 'next')]());
 		this.autoresults.scrollTop = this.autocurrent.positionedOffset()[1]-this.autocurrent.getHeight();
@@ -570,10 +602,10 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 	},
 
 	autoFeed: function(text)
-  {
+	{
 		var with_case = this.options.get('caseSensitive');
 		if (this.data.indexOf(Object.toJSON(text)) == -1)
-    {
+		{
 			this.data.push(Object.toJSON(text));
 			this.data_searchable.push(with_case ? Object.toJSON(text).evalJSON(true).caption : Object.toJSON(text).evalJSON(true).caption.toLowerCase());
 		}
@@ -581,193 +613,200 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 	},
 
 	autoAdd: function(el)
-  {
+	{
 		if (this.newvalue && this.options.get("newValues"))
-    {
+		{
 			this.add({ caption: el.value, value: el.value, newValue: true });
 			var input = el;
 		}
-    else if (!el || !el.retrieveData('result'))
-    {
+		else if (!el || !el.retrieveData('result'))
+		{
 			return null;
 		}
-    else
-    {
+		else
+		{
 			this.add(el.retrieveData('result'));
 			delete this.data[this.data.indexOf(Object.toJSON(el.retrieveData('result')))];
 			var input = this.lastinput || this.current.retrieveData('input');
 		}
-    
+		
 		this.autoHide();
 		input.clear().focus();
 		return this;
 	},
 
 	createInput: function($super,options)
-  {
+	{
 		var li = $super(options);
 		var input = li.retrieveData('input');
 
 		input.observe('keydown', function(e)
-    {
+		{
 			this.dosearch = false;
 			this.newvalue = false;
 
 			switch (e.keyCode)
-      {
-        case Event.KEY_UP: e.stop(); return this.autoMove('up');
-        case Event.KEY_DOWN: e.stop(); return this.autoMove('down');
-        case Event.KEY_RETURN:
-          // If the text input is blank and the user hits Enter call the onEmptyInput callback.
-          if (String('').valueOf() == String(this.current.retrieveData('input').getValue()).valueOf())
-          {
-            this.options.get("onEmptyInput")();
-          }
-          
-          e.stop();
-          
-          if (!this.autocurrent || !this.resultsshown)
-          {
-            this.insertCurrent();
-            break;
-          }
-          
-          this.current_input = "";
-          this.autoAdd(this.autocurrent);
-          this.autocurrent = false;
-          this.autoenter = true;
-          break;
-        
-        case Event.KEY_ESC:
-          this.autoHide();
-          if (this.current && this.current.retrieveData('input'))
-          {
-            this.current.retrieveData('input').clear();
-          }
-          break;
-        
-        default:
-          this.dosearch = true;
-      }
+			{
+				case Event.KEY_UP: e.stop(); return this.autoMove('up');
+				case Event.KEY_DOWN: e.stop(); return this.autoMove('down');
+				case Event.KEY_RETURN:
+					// If the text input is blank and the user hits Enter call the onEmptyInput callback.
+					if (String('').valueOf() == String(this.current.retrieveData('input').getValue()).valueOf())
+					{
+						this.options.get("onEmptyInput")();
+					}
+					
+					e.stop();
+					
+					if (!this.autocurrent || !this.resultsshown)
+					{
+						this.insertCurrent();
+						break;
+					}
+					
+					this.current_input = "";
+					this.autoAdd(this.autocurrent);
+					this.autocurrent = false;
+					this.autoenter = true;
+					break;
+				
+				case Event.KEY_ESC:
+					this.autoHide();
+					if (this.current && this.current.retrieveData('input'))
+					{
+						this.current.retrieveData('input').clear();
+					}
+					break;
+				
+				default:
+					this.dosearch = true;
+			}
 			return null;
 		}.bind(this));
-    
+		
 		input.observe('keyup', function(e)
-    {
-      switch (e.keyCode)
-      {
-        case Event.KEY_COMMA:
-          if (this.insertCurrent())
-          {
-            e.stop();
-          }
-          break;
-        
-        case Event.KEY_RETURN:
-        case Event.KEY_UP:
-        case Event.KEY_DOWN:
-        case Event.KEY_ESC:
-          break;
-        
-        default:
-          // If the user doesn't add comma after, the value is discarded upon submit
-          this.current_input = input.value.strip().escapeHTML();
-          this.update();
-          
-          // Removed Ajax.Request from here and moved to initialize,
-          // now doesn't create server queries every search but only
-          // refreshes the list on initialize (page load)
-          if (this.searchTimeout) clearTimeout(this.searchTimeout);
-          
-          this.searchTimeout = setTimeout(function()
-          {
-            var sanitizer = new RegExp("[({[^$*+?\\\]})]","g");
-            if (this.dosearch)
-            {
-              this.autoShow(input.value.replace(sanitizer,"\\$1"));
-            }
-          }.bind(this), 250);
-      }
-    }.bind(this));
-    
-    input.observe(Prototype.Browser.IE ? 'keydown' : 'keypress', function(e)
-    {
-		  if ((e.keyCode == Event.KEY_RETURN) && this.autoenter) e.stop();
-      this.autoenter = false;
-    }.bind(this));
-    
+		{
+			switch (e.keyCode)
+			{
+				case Event.KEY_COMMA:
+					if (this.insertCurrent())
+					{
+						e.stop();
+					}
+					break;
+				
+				case Event.KEY_RETURN:
+				case Event.KEY_UP:
+				case Event.KEY_DOWN:
+				case Event.KEY_ESC:
+					break;
+				
+				default:
+					// If the user doesn't add comma after, the value is discarded upon submit
+					this.current_input = input.value.strip().escapeHTML();
+					this.update();
+					
+					// Removed Ajax.Request from here and moved to initialize,
+					// now doesn't create server queries every search but only
+					// refreshes the list on initialize (page load)
+					if (this.searchTimeout) clearTimeout(this.searchTimeout);
+					
+					this.searchTimeout = setTimeout(function()
+					{
+						var sanitizer = new RegExp("[({[^$*+?\\\]})]","g");
+						if (this.dosearch)
+						{
+							this.autoShow(input.value.replace(sanitizer,"\\$1"));
+						}
+					}.bind(this), 250);
+			}
+		}.bind(this));
+		
+		input.observe(Prototype.Browser.IE ? 'keydown' : 'keypress', function(e)
+		{
+			if ((e.keyCode == Event.KEY_RETURN) && this.autoenter) e.stop();
+			this.autoenter = false;
+		}.bind(this));
+		
 		return li;
 	},
-  
+	
 	insertCurrent: function()
-  {
+	{
 		if (this.options.get('newValues'))
-    {
+		{
 			var new_value_el = this.current.retrieveData('input');
 
-			//if (!new_value_el.value.endsWith(','))
-      {
-        keep_input = "";
-        new_value_el.value = new_value_el.value.strip();
-        
-        if (new_value_el.value.indexOf(",") < (new_value_el.value.length - 1))
-        {
-          var comma_pos = new_value_el.value.indexOf(",");
-          if ( comma_pos > 0 )
-          {
-            keep_input = new_value_el.value.substr(comma_pos + 1);
-            new_value_el.value = new_value_el.value.substr(0,comma_pos).escapeHTML().strip();
-          }
-          else
-          {
-            keep_input = new_value_el.value;
-          }
-        }
-        else
-        {
-          new_value_el.value = new_value_el.value.gsub(",","").escapeHTML().strip();
-        }
-        
-        if (!this.options.get("spaceReplace").blank())
-        {
-          new_value_el.value.gsub(" ", this.options.get("spaceReplace"));
-        }
-        
-        if (!new_value_el.value.blank())
-        {
-          this.newvalue = true;
-          this.current_input = keep_input.escapeHTML().strip();
-          this.autoAdd(new_value_el);
-          input.value = keep_input;
-          this.update();
-          return true;
-        }
-      }
-    }
+			keep_input = "";
+			new_value_el.value = new_value_el.value.strip();
+			
+			if (new_value_el.value.indexOf(",") < (new_value_el.value.length - 1))
+			{
+				var comma_pos = new_value_el.value.indexOf(",");
+				if ( comma_pos > 0 )
+				{
+					keep_input = new_value_el.value.substr(comma_pos + 1);
+					new_value_el.value = new_value_el.value.substr(0,comma_pos).escapeHTML().strip();
+				}
+				else
+				{
+					keep_input = new_value_el.value;
+				}
+			}
+			else
+			{
+				new_value_el.value = new_value_el.value.gsub(",","").escapeHTML().strip();
+			}
+			
+			if (!this.options.get("spaceReplace").blank())
+			{
+				new_value_el.value.gsub(" ", this.options.get("spaceReplace"));
+			}
+			
+			if (!new_value_el.value.blank())
+			{
+				this.newvalue = true;
+				this.current_input = keep_input.escapeHTML().strip();
+				this.autoAdd(new_value_el);
+				this.update();
+				return true;
+			}
+		}
 		return false;
 	},
 
 	createBox: function($super,text, options)
-  {
-    var li = $super(text, options);
-    
-    li.observe('mouseover', function() { this.addClassName('bit-hover'); })
-      .observe('mouseout',function() { this.removeClassName('bit-hover'); });
-    
+	{
+		var li = $super(text, options);
+		
+		li.observe('mouseover', function() { this.addClassName('bit-hover'); })
+			.observe('mouseout',function() { this.removeClassName('bit-hover'); });
+		
 		var a = new Element('a', {
 			href: '#',
 			'class': 'closebutton'
 		});
-    
+		
 		a.observe('click',function(e)
-    {
+		{
 			e.stop();
 			if (!this.current) this.focus(this.maininput);
 			this.dispose(li);
 		}.bind(this));
-    
+		
 		li.insert(a).cacheData('text', Object.toJSON(text));
 		return li;
+	},
+
+	createAutoholder: function(id)
+	{
+		var div = new Element('div', { id: id });			
+		var ul = new Element('ul', { 'class': 'feed' });
+
+		div.insert(ul);
+		
+		this.element.insert({ after: div });
+		return div
 	}
 });
 
