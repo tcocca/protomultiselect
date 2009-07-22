@@ -143,7 +143,8 @@ var TextboxList = Class.create({
 			onEmptyInput: function(input){},
 			caseSensitive: false,
 			regexSearch: true,
-			loadFromInput: true
+			loadFromInput: true,
+			defaultMessage: ""	// Used to provide the default autocomplete message if built by the control
 		});
 		
 		this.current_input = "";
@@ -447,15 +448,17 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 		if (this.options.get('loadFromInput'))
 		{
 			var input_values = this.element.value.split(',');
-			var data_loaded = !!this.data.length
 
-			this.data.select(function(el) { return input_values.include(el.evalJSON(true).value) }).each(function(el)
+			if (this.data.length)
 			{
-				el = el.evalJSON(true);
-				this.add({ value: el.value, caption: el.caption});
-				delete this.data[this.data.indexOf(Object.toJSON(el))];
-				input_values = input_values.without(el.value);
-			}, this);
+				this.data.select(function(el) { return input_values.include(el.evalJSON(true).value) }).each(function(el)
+				{
+					el = el.evalJSON(true);
+					this.add({ value: el.value, caption: el.caption});
+					delete this.data[this.data.indexOf(Object.toJSON(el))];
+					input_values = input_values.without(el.value);
+				}, this);
+			}
 			
 			input_values.each(function(el)
 			{
@@ -802,6 +805,12 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 	{
 		var div = new Element('div', { id: id });			
 		var ul = new Element('ul', { 'class': 'feed' });
+
+		if (this.options.get('defaultMessage').length)
+		{
+			var default_div = new Element('div', { 'class': 'default' }).update(this.options.get('defaultMessage'));
+			div.insert(default_div);
+		}
 
 		div.insert(ul);
 		
