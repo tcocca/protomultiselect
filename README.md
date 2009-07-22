@@ -122,6 +122,6 @@ Copyright: InteRiders <http://interiders.com/> - Distributed under MIT - Keep th
 
 ### 0.9
   - Changes by Daniel Vandersluis
-	- Added createAutohandler method to automatically create the needed div/ul elements so that they don't need to be created in the HTML.
-	- Added loadFromInput option (default: true) to load values given in the initial text input into the control.
-	- Added defaultMessage option (default: "") which is used for a default message div if the control creates the autohandler. The default message is no longer mandatory.
+  - Added createAutohandler method to automatically create the needed div/ul elements so that they don't need to be created in the HTML.
+  - Added loadFromInput option (default: true) to load values given in the initial text input into the control.
+  - Added defaultMessage option (default: "") which is used for a default message div if the control creates the autohandler. The default message is no longer mandatory.
