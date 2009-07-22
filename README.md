@@ -17,6 +17,7 @@ Copyright: InteRiders <http://interiders.com/> - Distributed under MIT - Keep th
  - Nickolas Daskalou <http://www.footysx.com.au/>
  - Chris Anderton <http://thewebfellas.com/>
  - Dejan Strbac
+ - Daniel Vandersluis <http://www.codexed.com/>
 
 ## Parameters (and defaults)
 
@@ -34,6 +35,8 @@ Copyright: InteRiders <http://interiders.com/> - Distributed under MIT - Keep th
    - location of JSON file
  - fetchMethod: 'get'
    - set HTTP method
+ - feed: undefined
+	 - initial JSON feed to use (ignored if fetfile is specified)
  - results: 10,
    - maximum number of results to retrieve for display in the list (see also maxResults)
  - maxResults: 0
@@ -50,6 +53,10 @@ Copyright: InteRiders <http://interiders.com/> - Distributed under MIT - Keep th
    - callback that is called when a new element is added to input.  Argument is an object containing caption  and value members.  If it's a newvalue, caption will be nil.
  - onRemove: function( value ){}
    - callback that is called when a element is removed from the input.  Argument is the value of the element. 
+ - loadFromInput: true
+	 - specifies whether to add any values given in the initial text input to the control. Values will be loaded against any data provide
+ - defaultMessage: ""
+	 - if the control is building the autocomplete div itself, specifies the default message to use.
 
 ## Changelog
 
@@ -113,3 +120,8 @@ Copyright: InteRiders <http://interiders.com/> - Distributed under MIT - Keep th
   - Ignore Emacs backup and OSX .DS_Store files
   - added new method insertCurrent, which will add whatever is currently in the input box as an element.   Set enter to add elements along with comma.
 
+### 0.9
+  - Changes by Daniel Vandersluis
+	- Added createAutohandler method to automatically create the needed div/ul elements so that they don't need to be created in the HTML.
+	- Added loadFromInput option (default: true) to load values given in the initial text input into the control.
+	- Added defaultMessage option (default: "") which is used for a default message div if the control creates the autohandler. The default message is no longer mandatory.
