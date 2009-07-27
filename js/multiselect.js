@@ -55,23 +55,7 @@ Element.addMethods({
 		{
 			obj.blurhide = obj.autoHide.bind(obj).delay(0.1);
 		}
-	},
-	
-	/*
-	filter: function(D, E)
-	{
-		var arr = [];
-		for (var i = 0, i < this.length; i++)
-		{
-			if (D.call(E, this[i], i, this))
-			{
-				arr.push(this[i]);
-			}
-		}
-		
-		return arr;
 	}
-	*/
 });
 
 function $pick()
@@ -447,7 +431,7 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 
 		if (this.options.get('loadFromInput'))
 		{
-			var input_values = this.element.value.split(',');
+			var input_values = this.element.value.split(',').invoke('strip');
 
 			if (this.data.length)
 			{
@@ -462,7 +446,10 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 			
 			input_values.each(function(el)
 			{
-				this.add({ value: el, caption: el });
+				if (!el.empty())
+				{
+					this.add({ value: el, caption: el });
+				}
 			}, this);
 		}
 	},
