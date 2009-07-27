@@ -803,7 +803,7 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 
 	createAutoholder: function(id)
 	{
-		var div = new Element('div', { id: id });			
+		var div = new Element('div', { id: id, 'class': 'autocomplete' });			
 		var ul = new Element('ul', { 'class': 'feed' });
 
 		if (this.options.get('defaultMessage').length)
