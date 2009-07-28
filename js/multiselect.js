@@ -128,7 +128,8 @@ var TextboxList = Class.create({
 			caseSensitive: false,
 			regexSearch: true,
 			loadFromInput: true,
-			defaultMessage: ""	// Used to provide the default autocomplete message if built by the control
+			defaultMessage: "",	// Used to provide the default autocomplete message if built by the control
+			sortResults: false
 		});
 		
 		this.current_input = "";
@@ -421,6 +422,7 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 				onSuccess: function(transport)
 				{
 					transport.responseText.evalJSON(true).each(function(t) { this.autoFeed(t); }.bind(this));
+					if (this.options.get('loadFromInput')) this.loadFromInput()
 				}.bind(this)
 			});
 		}
@@ -429,28 +431,12 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 			this.options.get('feed').each(function(t) { this.autoFeed(t) }.bind(this));
 		}
 
-		if (this.options.get('loadFromInput'))
+		// We need to load from input as part of the AJAX request when using fetchFile
+		// or else the data won't have completed being fetched before the data in the 
+		// input is loaded
+		if (Object.isUndefined(this.options.get('fetchFile')) && this.options.get('loadFromInput'))
 		{
-			var input_values = this.element.value.split(',').invoke('strip');
-
-			if (this.data.length)
-			{
-				this.data.select(function(el) { return input_values.include(el.evalJSON(true).value) }).each(function(el)
-				{
-					el = el.evalJSON(true);
-					this.add({ value: el.value, caption: el.caption});
-					delete this.data[this.data.indexOf(Object.toJSON(el))];
-					input_values = input_values.without(el.value);
-				}, this);
-			}
-			
-			input_values.each(function(el)
-			{
-				if (!el.empty())
-				{
-					this.add({ value: el, caption: el });
-				}
-			}, this);
+			this.loadFromInput()
 		}
 	},
 
@@ -514,6 +500,11 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 				);
 			}
 			
+			if (this.options.get('sortResults'))
+			{
+				matches = matches.sortBy(function(el) { return el.evalJSON(true).caption })
+			}
+
 			var count = 0;
 			matches.each(
 				function(result, ti)
@@ -803,8 +794,33 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 		
 		this.element.insert({ after: div });
 		return div
-	}
+	},
+	
+	loadFromInput: function()
+  {
+		var input_values = this.element.value.split(',').invoke('strip');
+
+    if (this.data.length)
+    {
+      this.data.select(function(el) { return input_values.include(el.evalJSON(true).value) }).each(function(el)
+      {
+        el = el.evalJSON(true);
+        this.add({ value: el.value, caption: el.caption});
+        delete this.data[this.data.indexOf(Object.toJSON(el))];
+        input_values = input_values.without(el.value);
+      }, this);
+    }
+    
+    input_values.each(function(el)
+    {
+      if (!el.empty())
+      {
+        this.add({ value: el, caption: el });
+      }
+    }, this);
+  }
 });
 
 
 /* Copyright: InteRiders <http://interiders.com/> - Distributed under MIT - Keep this message! */
+// vi: noexpandtab
