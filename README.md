@@ -57,6 +57,8 @@ Copyright: InteRiders <http://interiders.com/> - Distributed under MIT - Keep th
 	 - specifies whether to add any values given in the initial text input to the control. Values will be loaded against any data provide
  - defaultMessage: ""
 	 - if the control is building the autocomplete div itself, specifies the default message to use.
+ - sortResults: false
+   - specifies whether autocomplete results should be sorted alphabetically by caption.
 
 ## Changelog
 
