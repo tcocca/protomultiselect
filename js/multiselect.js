@@ -169,6 +169,8 @@ var TextboxList = Class.create({
 				{
 					case Event.KEY_LEFT: return this.move('left');
 					case Event.KEY_RIGHT: return this.move('right');
+					case Event.KEY_HOME: return this.move('home');
+					case Event.KEY_END: return this.move('end');
 
 					case Event.KEY_DELETE:
 					case Event.KEY_BACKSPACE:
@@ -368,8 +370,20 @@ var TextboxList = Class.create({
 
 	move: function(direction)
 	{
-		var el = this.current[(direction == 'left' ? 'previous' : 'next')]();
-		if (el && (!this.current.retrieveData('input') || ((this.checkInput() || direction == 'right')))) this.focus(el);
+		switch (direction)
+		{
+			case 'home':
+				var el = this.current.parentNode.firstDescendant();
+				break;
+			
+			case 'end':
+				var el = this.current.parentNode.childElements().last();
+				break;
+
+			default:
+				var el = this.current[(direction == 'left' ? 'previous' : 'next')]();
+		}
+		if (el && (!this.current.retrieveData('input') || this.checkInput() || direction == 'right')) this.focus(el);
 		return this;
 	},
 
@@ -537,13 +551,15 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 		}
 		else
 		{
+			var autoresult_height = this.autoresults.firstDescendant().offsetHeight;
+
 			if (count > this.options.get('results'))
 			{
-				this.autoresults.setStyle({'height': (this.options.get('results')*24)+'px'});
+				this.autoresults.setStyle({'height': (this.options.get('results') * autoresult_height) + 'px'});
 			}
 			else
 			{
-				this.autoresults.setStyle({'height': (count?(count*24):0)+'px'});
+				this.autoresults.setStyle({'height': (count ? (count * autoresult_height) : 0) + 'px'});
 			}
 		}
 		
