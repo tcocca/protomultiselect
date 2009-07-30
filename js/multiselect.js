@@ -45,13 +45,13 @@ Element.addMethods({
 	
 	onInputFocus: function(el, obj)
 	{
-		obj.autoShow();
+		if (obj.autoShow) obj.autoShow();
 	},
 	
 	onInputBlur: function(el, obj)
 	{
 		obj.lastinput = el;
-		if (!obj.curOn)
+		if (!obj.curOn && obj.autoHide)
 		{
 			obj.blurhide = obj.autoHide.bind(obj).delay(0.1);
 		}
@@ -83,7 +83,7 @@ var ResizableTextbox = Class.create({
 		
 		this.el = $(element);
 		this.width = this.el.offsetWidth;
-
+		
 		this.el.observe('keyup',
 			function()
 			{
@@ -107,6 +107,7 @@ var ResizableTextbox = Class.create({
 var TextboxList = Class.create({
 	initialize: function(element, options)
 	{
+		// Default options for TextboxList
 		this.options = $H({
 			resizable: {},
 			className: 'bit',
@@ -117,21 +118,9 @@ var TextboxList = Class.create({
 			onRemove: function(text){},
 			hideempty: true,
 			newValues: false,
-			newValueDelimiters: ['[',']'],
-			spaceReplace: '',
-			fetchFile: undefined,
-			fetchMethod: 'get',
-			results: 10,
-			maxResults: 0, // 0 = set to default (which is 10 (see MultiSelect class)),
-			wordMatch: false,
-			onEmptyInput: function(input){},
-			caseSensitive: false,
-			regexSearch: true,
-			loadFromInput: true,
-			defaultMessage: "",	// Used to provide the default autocomplete message if built by the control
-			sortResults: false
+			spaceReplace: ''
 		});
-		
+
 		this.current_input = "";
 		this.options.update(options);
 		this.element = $(element).hide();
@@ -252,6 +241,52 @@ var TextboxList = Class.create({
 		return input;
 	},
 
+	insertCurrent: function()
+	{
+		if (this.options.get('newValues'))
+		{
+			var new_value_el = this.current.retrieveData('input');
+
+			keep_input = "";
+			new_value_el.value = new_value_el.value.strip();
+			
+			if (new_value_el.value.indexOf(",") < (new_value_el.value.length - 1))
+			{
+				var comma_pos = new_value_el.value.indexOf(",");
+				if ( comma_pos > 0 )
+				{
+					keep_input = new_value_el.value.substr(comma_pos + 1);
+					new_value_el.value = new_value_el.value.substr(0,comma_pos).escapeHTML().strip();
+				}
+				else
+				{
+					keep_input = new_value_el.value;
+				}
+			}
+			else
+			{
+				new_value_el.value = new_value_el.value.gsub(",","").escapeHTML().strip();
+			}
+			
+			if (!this.options.get("spaceReplace").blank())
+			{
+				new_value_el.value.gsub(" ", this.options.get("spaceReplace"));
+			}
+			
+			if (!new_value_el.value.blank())
+			{
+				this.newvalue = true;
+				this.current_input = keep_input.escapeHTML().strip();
+				this.add({ caption: new_value_el.value, value: new_value_el.value, newValue: true });
+				new_value_el.clear().focus();
+
+				this.update();
+				return true;
+			}
+		}
+		return false;
+	},
+
 	dispose: function(el)
 	{
 		this.bits.unset(el.id);
@@ -336,7 +371,21 @@ var TextboxList = Class.create({
 
 	createBox: function(text, options)
 	{
-		return new Element('a', options).addClassName(this.options.get('className') + '-box').update(text.caption).cacheData('type', 'box');
+		var box = new Element('a', options).addClassName(this.options.get('className') + '-box').update(text.caption).cacheData('type', 'box');
+		var a = new Element('a', {
+			href: '#',
+			'class': 'closebutton'
+		});
+		
+		a.observe('click',function(e)
+		{
+			e.stop();
+			if (!this.current) this.focus(this.maininput);
+			this.dispose(box);
+		}.bind(this));
+		
+		box.insert(a).cacheData('text', Object.toJSON(text));
+		return box;
 	},
 
 	createInput: function(options)
@@ -346,7 +395,20 @@ var TextboxList = Class.create({
 		
 		el.observe('focus', function(e) { if (!this.isSelfEvent('focus')) this.focus(a, true); }.bind(this))
 			.observe('blur', function() { if (!this.isSelfEvent('blur')) this.blur(true); }.bind(this))
-			.observe('keydown', function(e) { this.cacheData('lastvalue', this.value).cacheData('lastcaret', this.getCaretPosition()); });
+			.observe('keydown', function(e) { this.cacheData('lastvalue', this.value).cacheData('lastcaret', this.getCaretPosition()); })
+			.observe('keyup', function(e)
+				{
+					switch (e.keyCode)
+					{
+						case Event.KEY_COMMA:
+						case Event.KEY_RETURN:
+							if (this.insertCurrent())
+							{
+								e.stop();
+							}
+							break;
+					}
+				}.bind(this));
 
 		var tmp = a.cacheData('type', 'input').cacheData('input', el).insert(el);
 		return tmp;
@@ -416,7 +478,24 @@ var TextboxList = Class.create({
 var ProtoMultiSelect = Class.create(TextboxList, {
 	initialize: function($super, element, autoholder, options, func)
 	{
+		// Set up default options for ProtoMultiSelect
+		options = $H({
+			fetchFile: undefined,
+			fetchMethod: 'get',
+			results: 10,
+			maxResults: 0, // 0 = set to default (which is 10 (see MultiSelect class)),
+			wordMatch: false,
+			onEmptyInput: function(input){},
+			caseSensitive: false,
+			regexSearch: true,
+			loadFromInput: true,
+			defaultMessage: "",	// Used to provide the default autocomplete message if built by the control
+			sortResults: false,
+			autoDelay: 250
+		}).update(options);
+
 		$super(element, options);
+
 		this.loptions = $H({
 			autocomplete: {
 				opacity: 1,
@@ -566,7 +645,8 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 	
 		if (count == 0)
 		{
-			// if there are no results, hide everything so that KEY_ENTER has no effect
+			// if there are no results, hide everything so that KEY_RETURN has no effect
+			this.autocurrent = false;
 			this.autoHide();
 		}
 		else
@@ -634,12 +714,7 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 
 	autoAdd: function(el)
 	{
-		if (this.newvalue && this.options.get("newValues"))
-		{
-			this.add({ caption: el.value, value: el.value, newValue: true });
-			var input = el;
-		}
-		else if (!el || !el.retrieveData('result'))
+		if (!el || !el.retrieveData('result'))
 		{
 			return null;
 		}
@@ -678,12 +753,6 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 					
 					e.stop();
 					
-					if (!this.autocurrent || !this.resultsshown)
-					{
-						this.insertCurrent();
-						break;
-					}
-					
 					this.current_input = "";
 					this.autoAdd(this.autocurrent);
 					this.autocurrent = false;
@@ -691,11 +760,11 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 					break;
 				
 				case Event.KEY_ESC:
+					// If ESC is pressed, hide the autocomplete, but let the user still enter the text they typed
+					// This lets the user type part of an autocomplete result but add just what they typed instead
+					// of the full result.
+					this.autocurrent = false;
 					this.autoHide();
-					if (this.current && this.current.retrieveData('input'))
-					{
-						this.current.retrieveData('input').clear();
-					}
 					break;
 				
 				default:
@@ -709,12 +778,6 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 			switch (e.keyCode)
 			{
 				case Event.KEY_COMMA:
-					if (this.insertCurrent())
-					{
-						e.stop();
-					}
-					break;
-				
 				case Event.KEY_RETURN:
 				case Event.KEY_UP:
 				case Event.KEY_DOWN:
@@ -738,7 +801,7 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 						{
 							this.autoShow(input.value.replace(sanitizer,"\\$1"));
 						}
-					}.bind(this), 250);
+					}.bind(this), this.options.get('autoDelay'));
 			}
 		}.bind(this));
 		
@@ -751,50 +814,6 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 		return box;
 	},
 	
-	insertCurrent: function()
-	{
-		if (this.options.get('newValues'))
-		{
-			var new_value_el = this.current.retrieveData('input');
-
-			keep_input = "";
-			new_value_el.value = new_value_el.value.strip();
-			
-			if (new_value_el.value.indexOf(",") < (new_value_el.value.length - 1))
-			{
-				var comma_pos = new_value_el.value.indexOf(",");
-				if ( comma_pos > 0 )
-				{
-					keep_input = new_value_el.value.substr(comma_pos + 1);
-					new_value_el.value = new_value_el.value.substr(0,comma_pos).escapeHTML().strip();
-				}
-				else
-				{
-					keep_input = new_value_el.value;
-				}
-			}
-			else
-			{
-				new_value_el.value = new_value_el.value.gsub(",","").escapeHTML().strip();
-			}
-			
-			if (!this.options.get("spaceReplace").blank())
-			{
-				new_value_el.value.gsub(" ", this.options.get("spaceReplace"));
-			}
-			
-			if (!new_value_el.value.blank())
-			{
-				this.newvalue = true;
-				this.current_input = keep_input.escapeHTML().strip();
-				this.autoAdd(new_value_el);
-				this.update();
-				return true;
-			}
-		}
-		return false;
-	},
-
 	createBox: function($super,text, options)
 	{
 		var box = $super(text, options);
@@ -802,19 +821,6 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 		box.observe('mouseover', function() { this.addClassName('bit-hover'); })
 			 .observe('mouseout',function() { this.removeClassName('bit-hover'); });
 		
-		var a = new Element('a', {
-			href: '#',
-			'class': 'closebutton'
-		});
-		
-		a.observe('click',function(e)
-		{
-			e.stop();
-			if (!this.current) this.focus(this.maininput);
-			this.dispose(box);
-		}.bind(this));
-		
-		box.insert(a).cacheData('text', Object.toJSON(text));
 		return box;
 	},
 
