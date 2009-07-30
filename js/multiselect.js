@@ -76,22 +76,21 @@ var ResizableTextbox = Class.create({
 		var that = this;
 		
 		this.options = $H({
-			min: 5,
-			max: 500,
-			step: 7
+			minimum: 5,
+			maximum: 500
 		}).update(options);
 		
 		this.el = $(element);
-		this.width = this.el.offsetWidth;
-		
+		this.measurediv = this.getMeasurementDiv();
+		this.el.setStyle({ width: this.calculateWidth() });
+
 		this.el.observe('keyup',
 			function()
 			{
-				var newsize = that.options.get('step') * $F(this).length;
-				if (newsize <= that.options.get('min')) newsize = that.width;
-				if (!($F(this).length == this.retrieveData('rt-value') || newsize <= that.options.min || newsize >= that.options.max))
+				var newsize = that.calculateWidth();
+				if (newsize >= that.options.get('minimum') && newsize <= that.options.get('maximum'))
 				{
-					this.setStyle({ 'width': newsize });
+					this.setStyle({ width: newsize + "px"});
 				}
 			}
 		)
@@ -101,6 +100,40 @@ var ResizableTextbox = Class.create({
 				this.cacheData('rt-value', $F(this).length);
 			}
 		);
+	},
+
+	calculateWidth: function()
+	{
+		this.measurediv.update($F(this.el))
+		
+		newsize = this.measurediv.getWidth() + 10;
+		if (newsize < this.options.get('minimum')) newsize = this.options.get('minimum');
+		if (newsize > this.options.get('maximum')) newsize = this.options.get('maximum');
+		return newsize;
+	},
+
+	getMeasurementDiv: function()
+	{
+		// A hidden div created in order to measure the width of the text
+		if (!$('__resizeable_textbox_measure_div'))
+		{
+			var div = new Element('div', { id: '__resizeable_textbox_measure_div' })
+			div.setStyle({
+				position: 'absolute',
+				top: '-1000px',
+				left: '-1000px'
+			});
+			document.body.insert(div);
+		}
+		else
+		{
+			var div = $('__resizeable_textbox_measure_div');
+		}
+
+		return div.setStyle({
+			fontSize: this.el.getStyle('font-size'),
+			fontFamily: this.el.getStyle('font-family')
+		});
 	}
 });
 
