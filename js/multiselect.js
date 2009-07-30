@@ -140,13 +140,13 @@ var TextboxList = Class.create({
 		this.count = 0;
 		this.current = false;
 		this.maininput = this.createInput({ 'class': 'maininput' });
-		this.holder = new Element('ul', { 'class': 'holder' }).insert(this.maininput);
+		this.holder = new Element('div', { 'class': 'holder' }).insert(this.maininput);
 		this.element.insert({ before: this.holder });
 		
 		this.holder.observe('click', function(event)
 		{
 			event.stop();
-			if (this.maininput != this.current) this.focus(this.maininput);
+			this.focus(this.maininput);
 		}.bind(this));
 
 		this.makeResizable(this.maininput);
@@ -155,12 +155,7 @@ var TextboxList = Class.create({
 
 	setEvents: function()
 	{
-		document.observe(Prototype.Browser.IE ? 'keydown' : 'keypress', function(e) {
-			if (!this.current) return;
-			if (this.current.retrieveData('type') == 'box' && e.keyCode == Event.KEY_BACKSPACE) e.stop();
-		}.bind(this));
-
-		document.observe('keyup',
+		this.holder.observe('keyup',
 			function(e)
 			{
 				e.stop();
@@ -169,8 +164,6 @@ var TextboxList = Class.create({
 				{
 					case Event.KEY_LEFT: return this.move('left');
 					case Event.KEY_RIGHT: return this.move('right');
-					case Event.KEY_HOME: return this.move('home');
-					case Event.KEY_END: return this.move('end');
 
 					case Event.KEY_DELETE:
 					case Event.KEY_BACKSPACE:
@@ -179,7 +172,28 @@ var TextboxList = Class.create({
 				
 				return null;
 			}.bind(this)
-		).observe('click', function() { document.fire('blur'); }.bindAsEventListener(this));
+		).observe(Prototype.Browser.IE ? 'keydown' : 'keypress',
+			function(e)
+			{
+				if (!this.current) return null;
+				if (this.current.retrieveData('type') == 'box' && e.keyCode == Event.KEY_BACKSPACE) e.stop();
+				if (this.current.retrieveData('input') && !this.checkInput()) return null;
+
+				if ([Event.KEY_HOME, Event.KEY_END].include(e.keyCode)) e.stop();
+
+				// The handlers for Home and End need to be done on keypress; by the time
+				// keyup fires, the default behaviour (scroll the page) will have happened
+				switch (e.keyCode)
+				{
+					case Event.KEY_HOME: return this.move('home');
+					case Event.KEY_END: return this.move('end');
+				}
+				
+				return null;
+			}.bind(this)
+		)
+		
+		document.observe('click', function() { this.blur() }.bindAsEventListener(this));
 	},
 
 	update: function()
@@ -200,7 +214,8 @@ var TextboxList = Class.create({
 			{
 				'id': id,
 				'class': this.options.get('className'),
-				'newValue' : text.newValue ? 'true' : 'false'
+				'newValue' : text.newValue ? 'true' : 'false',
+				'href': '#'
 			}
 		);
 		
@@ -287,7 +302,11 @@ var TextboxList = Class.create({
 			el.onInputFocus(this);
 			if (!nofocus) this.callEvent(el.retrieveData('input'), 'focus');
 		}
-		else el.fire('onBoxFocus');
+		else
+		{
+			el.fire('onBoxFocus');
+			this.callEvent(el, 'focus');
+		}
 
 		this.current = el;
 		return this;
@@ -317,20 +336,19 @@ var TextboxList = Class.create({
 
 	createBox: function(text, options)
 	{
-		return new Element('li', options).addClassName(this.options.get('className') + '-box').update(text.caption).cacheData('type', 'box');
+		return new Element('a', options).addClassName(this.options.get('className') + '-box').update(text.caption).cacheData('type', 'box');
 	},
 
 	createInput: function(options)
 	{
-		var li = new Element('li', { 'class': this.options.get('className') + '-input' });
+		var a = new Element('a', { 'class': this.options.get('className') + '-input' });
 		var el = new Element('input', Object.extend(options,{ type: 'text', autocomplete: 'off' }));
 		
-		el.observe('click', function(e) { e.stop(); })
-			.observe('focus', function(e) { if (!this.isSelfEvent('focus')) this.focus(li, true); }.bind(this))
+		el.observe('focus', function(e) { if (!this.isSelfEvent('focus')) this.focus(a, true); }.bind(this))
 			.observe('blur', function() { if (!this.isSelfEvent('blur')) this.blur(true); }.bind(this))
 			.observe('keydown', function(e) { this.cacheData('lastvalue', this.value).cacheData('lastcaret', this.getCaretPosition()); });
 
-		var tmp = li.cacheData('type', 'input').cacheData('input', el).insert(el);
+		var tmp = a.cacheData('type', 'input').cacheData('input', el).insert(el);
 		return tmp;
 	},
 
@@ -345,9 +363,9 @@ var TextboxList = Class.create({
 		return (this.events.get(type)) ? !!this.events.unset(type) : false;
 	},
 
-	makeResizable: function(li)
+	makeResizable: function(box)
 	{
-		var el = li.retrieveData('input');
+		var el = box.retrieveData('input');
 		el.cacheData('resizable',
 			new ResizableTextbox(
 				el,
@@ -452,6 +470,8 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 		{
 			this.loadFromInput()
 		}
+
+		document.observe('click', function() { this.autoHide() }.bindAsEventListener(this));
 	},
 
 	autoShow: function(search)
@@ -637,8 +657,8 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 
 	createInput: function($super,options)
 	{
-		var li = $super(options);
-		var input = li.retrieveData('input');
+		var box = $super(options);
+		var input = box.retrieveData('input');
 
 		input.observe('keydown', function(e)
 		{
@@ -728,7 +748,7 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 			this.autoenter = false;
 		}.bind(this));
 		
-		return li;
+		return box;
 	},
 	
 	insertCurrent: function()
@@ -777,10 +797,10 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 
 	createBox: function($super,text, options)
 	{
-		var li = $super(text, options);
+		var box = $super(text, options);
 		
-		li.observe('mouseover', function() { this.addClassName('bit-hover'); })
-			.observe('mouseout',function() { this.removeClassName('bit-hover'); });
+		box.observe('mouseover', function() { this.addClassName('bit-hover'); })
+			 .observe('mouseout',function() { this.removeClassName('bit-hover'); });
 		
 		var a = new Element('a', {
 			href: '#',
@@ -791,11 +811,11 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 		{
 			e.stop();
 			if (!this.current) this.focus(this.maininput);
-			this.dispose(li);
+			this.dispose(box);
 		}.bind(this));
 		
-		li.insert(a).cacheData('text', Object.toJSON(text));
-		return li;
+		box.insert(a).cacheData('text', Object.toJSON(text));
+		return box;
 	},
 
 	createAutoholder: function(id)

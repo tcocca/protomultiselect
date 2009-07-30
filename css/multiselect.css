@@ -2,18 +2,22 @@
 *:first-child+html ul.holder { padding-bottom: 2px; }
 * html ul.holder { padding-bottom: 2px; } /* ie7 and below */
 
-ul.holder { width: 500px; margin: 0; border: 1px solid #999; overflow: hidden; height: auto !important; height: 1%; padding: 4px 5px 0; }
-ul.holder li { float: left; list-style-type: none; margin: 0 5px 4px 0; }
-ul.holder li.bit-box, ul.holder li.bit-input input { font: 11px "Lucida Grande", "Verdana"; }
-ul.holder li.bit-box { -moz-border-radius: 6px; -webkit-border-radius: 6px; border-radius: 6px; border: 1px solid #CAD8F3; background: #DEE7F8; padding: 1px 5px 2px; padding-right: 15px; position: relative; }
-ul.holder li.bit-box-focus { border-color: #598BEC; background: #598BEC; color: #fff; }
-ul.holder li.bit-input input { width: 150px; margin: 0; border: none; outline: 0; padding: 3px 0 2px; } /* no left/right padding here please */
-ul.holder li.bit-input input.smallinput { width: 20px; }
-ul.holder li.bit-hover { background: #BBCEF1; border: 1px solid #6D95E0; }
-ul.holder li.bit-box-focus { border-color: #598BEC; background: #598BEC; color: #fff; }
-ul.holder li.bit-box a.closebutton { position: absolute; right: 4px; top: 5px; display: block; width: 7px; height: 7px; font-size: 1px; background: url('../images/close.gif'); }
-ul.holder li.bit-box a.closebutton:hover { background-position: 7px; }
-ul.holder li.bit-box-focus a.closebutton, ul.holder li.bit-box-focus a.closebutton:hover { background-position: bottom; }
+/* DIV holder */
+div.holder { width: 500px; margin: 0; border: 1px solid #999; overflow: hidden; height: auto !important; height: 1%; padding: 4px 5px 0; cursor: text;}
+div.holder a { float: left; margin: 0 5px 4px 0; }
+div.holder a.bit { text-decoration: none; color: black; }
+div.holder a.bit:active, div.holder a.bit:focus { outline: none; }
+div.holder a.bit-box, div.holder a.bit-input input { font: 11px "Lucida Grande", "Verdana"; }
+div.holder a.bit-box { -moz-border-radius: 6px; -webkit-border-radius: 6px; border-radius: 6px; border: 1px solid #CAD8F3; background: #DEE7F8; padding: 1px 5px 2px; padding-right: 15px; position: relative; }
+div.holder a.bit-box-focus { border-color: #598BEC; background: #598BEC; color: #fff; }
+div.holder a.bit-input input { width: 150px; margin: 0; border: none; outline: 0; padding: 3px 0 2px; } /* no left/right padding here please */
+div.holder a.bit-input input.smallinput { width: 20px; }
+div.holder a.bit-hover { background: #BBCEF1; border: 1px solid #6D95E0; }
+div.holder a.bit-box-focus { border-color: #598BEC; background: #598BEC; color: #fff; }
+div.holder a.bit-box a.closebutton { position: absolute; right: 0; top: 5px; display: block; width: 7px; height: 7px; font-size: 1px; background: url('../images/close.gif'); }
+div.holder a.bit-box a.closebutton:hover { background-position: 7px; }
+div.holder a.bit-box a.closebutton:active { outline: none }
+div.holder a.bit-box-focus a.closebutton, div.holder a.bit-box-focus a.closebutton:hover { background-position: bottom; }
 
 /* Autocompleter CSS */
 .autocomplete { font: 11px "Lucida Grande", "Verdana"; display: none; position: absolute; width: 512px; background: #eee; }
