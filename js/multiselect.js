@@ -84,7 +84,7 @@ var ResizableTextbox = Class.create({
 		this.measurediv = this.getMeasurementDiv();
 		this.el.setStyle({ width: this.calculateWidth() });
 
-		this.el.observe('keyup',
+		this.el.observe('keypress',
 			function()
 			{
 				var newsize = that.calculateWidth();
@@ -93,20 +93,15 @@ var ResizableTextbox = Class.create({
 					this.setStyle({ width: newsize + "px"});
 				}
 			}
-		)
-		.observe('keydown',
-			function()
-			{
-				this.cacheData('rt-value', $F(this).length);
-			}
 		);
 	},
 
 	calculateWidth: function()
 	{
-		this.measurediv.update($F(this.el))
+		this.measurediv.update($F(this.el) + 'MM') // M is generally the widest character
+																							 // increase the width by 2 M's so that there is no scrolling when inputting wide chars
 		
-		newsize = this.measurediv.getWidth() + 10;
+		newsize = this.measurediv.getWidth();
 		if (newsize < this.options.get('minimum')) newsize = this.options.get('minimum');
 		if (newsize > this.options.get('maximum')) newsize = this.options.get('maximum');
 		return newsize;
@@ -123,7 +118,7 @@ var ResizableTextbox = Class.create({
 				top: '-1000px',
 				left: '-1000px'
 			});
-			document.body.insert(div);
+			$(document.body).insert(div);
 		}
 		else
 		{
@@ -280,20 +275,14 @@ var TextboxList = Class.create({
 		{
 			var new_value_el = this.current.retrieveData('input');
 
-			keep_input = "";
 			new_value_el.value = new_value_el.value.strip();
 			
 			if (new_value_el.value.indexOf(",") < (new_value_el.value.length - 1))
 			{
 				var comma_pos = new_value_el.value.indexOf(",");
-				if ( comma_pos > 0 )
+				if (comma_pos > 0)
 				{
-					keep_input = new_value_el.value.substr(comma_pos + 1);
-					new_value_el.value = new_value_el.value.substr(0,comma_pos).escapeHTML().strip();
-				}
-				else
-				{
-					keep_input = new_value_el.value;
+					new_value_el.value = new_value_el.value.substr(0, comma_pos).escapeHTML().strip();
 				}
 			}
 			else
@@ -309,11 +298,12 @@ var TextboxList = Class.create({
 			if (!new_value_el.value.blank())
 			{
 				this.newvalue = true;
-				this.current_input = keep_input.escapeHTML().strip();
-				this.add({ caption: new_value_el.value, value: new_value_el.value, newValue: true });
+				var value = new_value_el.value;
 				new_value_el.clear().focus();
 
-				this.update();
+				this.current_input = ""; // stops the value from being added to the element twice
+				this.add({ caption: value, value: value, newValue: true });
+
 				return true;
 			}
 		}
@@ -832,6 +822,7 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 						var sanitizer = new RegExp("[({[^$*+?\\\]})]","g");
 						if (this.dosearch)
 						{
+							this.autocurrent = false
 							this.autoShow(input.value.replace(sanitizer,"\\$1"));
 						}
 					}.bind(this), this.options.get('autoDelay'));
