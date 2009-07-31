@@ -737,16 +737,11 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 
 	autoAdd: function(el)
 	{
-		if (!el || !el.retrieveData('result'))
-		{
-			return null;
-		}
-		else
-		{
-			this.add(el.retrieveData('result'));
-			delete this.data[this.data.indexOf(Object.toJSON(el.retrieveData('result')))];
-			var input = this.lastinput || this.current.retrieveData('input');
-		}
+		if (!el || !el.retrieveData('result')) return null;
+			
+		this.add(el.retrieveData('result'));
+		delete this.data[this.data.indexOf(Object.toJSON(el.retrieveData('result')))];
+		var input = this.lastinput || this.current.retrieveData('input');
 		
 		this.autoHide();
 		input.clear().focus();
@@ -768,16 +763,29 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 				case Event.KEY_UP: e.stop(); return this.autoMove('up');
 				case Event.KEY_DOWN: e.stop(); return this.autoMove('down');
 				case Event.KEY_RETURN:
+					var input_value = this.current.retrieveData('input').getValue();
+					
 					// If the text input is blank and the user hits Enter call the onEmptyInput callback.
-					if (String('').valueOf() == String(this.current.retrieveData('input').getValue()).valueOf())
+					if (input_value.blank())
 					{
 						this.options.get("onEmptyInput")();
+						this.autocurrent = false; // if the input is blank, we shouldn't be adding an autocomplete result
 					}
 					
 					e.stop();
+
+					// Ensure that the value matches this.autocurrent before autoAdd'ing.
+					// This stops the wrong value from being added if the user types fast and hits enter before a new autocurrent is found
+					if (this.autocurrent && new RegExp(input_value, 'i').test(this.autocurrent.retrieveData('result').caption))
+					{
+						this.autoAdd(this.autocurrent);
+					}
+					else
+					{
+						this.autoHide();
+					}
 					
 					this.current_input = "";
-					this.autoAdd(this.autocurrent);
 					this.autocurrent = false;
 					this.autoenter = true;
 					break;
