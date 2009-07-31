@@ -51,34 +51,21 @@
 			{
 				width: 500px;
 				padding: 5px 5px 6px;
-				font: 11px "Lucida Grande", "Verdana";
 				border: 1px solid #999;
 			}
 		</style>
   </head>
   
-  <body id="test">    
-    <h1>Proto!MultiSelect 0.9</h1>
+  <body id="test">
+    <h1>Proto!MultiSelect 0.10</h1>
     <div id="text"></div>
     <form action="test_submit" method="get" accept-charset="utf-8">
       <ol>        
         <li id="proto-ms-list" class="input-text">
           <label>MultiSelect Input</label>
           <input type="text" value="1,2" id="demo" />
-          <!--
-					* Adding the autocomplete div in the HTML is no longer necessary, as the control will create it.
-					* You can add initial values by specifying them in the value list of the text input. If feed or fetchFile is provided
-					  to the control, the captions for the given values will be looked up from the data
-					<div id="prot-ms-auto">
-            <div class="default">Type the name of an argentine writer you like</div> 
-            <ul class="feed">
-              <li value="1">Zuriel Barron</li>
-              <li value="2">Osvaldo Tierra</li>
-            </ul>
-          </div>
-          -->
         </li>
-      </ol>   
+      </ol>
     </form>  
     <div id="button_container">       
         <button onclick="alert($F('demo'));return false;">Get Values</button>
@@ -111,7 +98,7 @@
 						{ caption: "Ricardo Rojas", value: 22 }
 					];
 					
-          var control = new ProtoMultiSelect('demo', 'prot-ms-auto', {
+          var control = new ProtoMultiSelect('demo', 'demo-autocomplete', {
 						newValues: true,
 						regexSearch: false,
 						feed: json_feed,

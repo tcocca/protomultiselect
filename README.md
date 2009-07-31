@@ -59,6 +59,8 @@ Copyright: InteRiders <http://interiders.com/> - Distributed under MIT - Keep th
 	 - if the control is building the autocomplete div itself, specifies the default message to use.
  - sortResults: false
    - specifies whether autocomplete results should be sorted alphabetically by caption.
+ - autoDelay: 250
+   - specifies the delay before the autocomplete results appear.
 
 ## Changelog
 
@@ -128,3 +130,11 @@ Copyright: InteRiders <http://interiders.com/> - Distributed under MIT - Keep th
   - Added loadFromInput option (default: true) to load values given in the initial text input into the control.
   - Added defaultMessage option (default: "") which is used for a default message div if the control creates the autohandler. The default message is no longer mandatory.
   - Added sortResults option (default: false) which will sort autocomplete results by caption.
+
+### 0.10
+  - Decoupled TextboxList from ProtoMultiSelect so that TextboxList is fully functional on its own.
+  - Fixed ResizableTextbox so that it actually resizes the textbox and is much more intelligent about calculating the size.
+  - Changed TextboxList to use div and a instead of ul and li so that events can be contained within the control instead of being registered on the document object.
+  - Stopped the selected autocomplete result from being added if the input value does not match the result when enter is pressed.
+  - Fixed Home and End key events so that they don't scroll the page when pressed within the control.
+  - Added autoDelay option (default: 250) to specify the delay before the autocomplete results appear.
