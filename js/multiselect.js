@@ -82,18 +82,10 @@ var ResizableTextbox = Class.create({
 		
 		this.el = $(element);
 		this.measurediv = this.getMeasurementDiv();
-		this.el.setStyle({ width: this.calculateWidth() });
+		this.setElementWidth();
 
-		this.el.observe('keypress',
-			function()
-			{
-				var newsize = that.calculateWidth();
-				if (newsize >= that.options.get('minimum') && newsize <= that.options.get('maximum'))
-				{
-					this.setStyle({ width: newsize + "px"});
-				}
-			}
-		);
+		this.el.observe('keypress', this.setElementWidth.bind(this))
+					 .observe('keyup', this.setElementWidth.bind(this));
 	},
 
 	calculateWidth: function()
@@ -107,6 +99,19 @@ var ResizableTextbox = Class.create({
 		return newsize;
 	},
 
+	clear: function()
+	{
+		this.el.clear();
+		this.setElementWidth();
+		return this;
+	},
+
+	focus: function()
+	{
+		this.el.focus();
+		return this;
+	},
+	
 	getMeasurementDiv: function()
 	{
 		// A hidden div created in order to measure the width of the text
@@ -129,6 +134,15 @@ var ResizableTextbox = Class.create({
 			fontSize: this.el.getStyle('font-size'),
 			fontFamily: this.el.getStyle('font-family')
 		});
+	},
+
+	setElementWidth: function()
+	{
+		var newsize = this.calculateWidth();
+		if (newsize >= this.options.get('minimum') && newsize <= this.options.get('maximum'))
+		{
+			this.el.setStyle({ width: newsize + "px"});
+		}
 	}
 });
 
@@ -299,7 +313,7 @@ var TextboxList = Class.create({
 			{
 				this.newvalue = true;
 				var value = new_value_el.value;
-				new_value_el.clear().focus();
+				new_value_el.retrieveData('resizable').clear().focus();
 
 				this.current_input = ""; // stops the value from being added to the element twice
 				this.add({ caption: value, value: value, newValue: true });
@@ -744,7 +758,7 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 		var input = this.lastinput || this.current.retrieveData('input');
 		
 		this.autoHide();
-		input.clear().focus();
+		input.retrieveData('resizable').clear().focus();
 		return this;
 	},
 
