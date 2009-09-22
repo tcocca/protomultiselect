@@ -90,7 +90,7 @@ var ResizableTextbox = Class.create({
 
 	calculateWidth: function()
 	{
-		this.measurediv.update($F(this.el) + 'MM') // M is generally the widest character
+		this.measurediv.update($F(this.el).escapeHTML() + 'MM') // M is generally the widest character
 																							 // increase the width by 2 M's so that there is no scrolling when inputting wide chars
 		
 		newsize = this.measurediv.getWidth();
@@ -528,7 +528,8 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 			loadFromInput: true,
 			defaultMessage: "",	// Used to provide the default autocomplete message if built by the control
 			sortResults: false,
-			autoDelay: 250
+			autoDelay: 250,
+			autoResize: false
 		}).update(options);
 
 		$super(element, options);
@@ -551,6 +552,14 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 		this.autoholder.setOpacity(this.loptions.get('autocomplete').opacity)
 			.observe('mouseover', function() { this.curOn = true; }.bind(this))
 			.observe('mouseout', function() { this.curOn = false; }.bind(this));
+
+		// Keep the autocomplete element the same size as the input
+		// Allows for width on the holder to be specified as a percentage
+		if (this.options.get('autoResize'))
+		{
+			this.autoResize();
+			Event.observe(window, 'resize', function() { this.autoResize(); }.bind(this));
+		}
 
 		// Defines the autocomplete list
 		this.autoresults = this.autoholder.select('ul').first();
@@ -760,6 +769,11 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 		this.autoHide();
 		input.retrieveData('resizable').clear().focus();
 		return this;
+	},
+
+	autoResize: function()
+	{
+		this.autoholder.setStyle({width: this.holder.getWidth() + "px"});
 	},
 
 	createInput: function($super,options)
