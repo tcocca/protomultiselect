@@ -4,7 +4,7 @@
 */
 
 // Added key contstant for COMMA watching happiness
-Object.extend(Event, { KEY_COMMA: 188, KEY_SPACE: 32 });
+Object.extend(Event, { KEY_COMMA: 188, CHAR_COMMA: 44 });
 
 // helper functions
 Element.addMethods({
@@ -296,12 +296,12 @@ var TextboxList = Class.create({
 				var comma_pos = new_value_el.value.indexOf(",");
 				if (comma_pos > 0)
 				{
-					new_value_el.value = new_value_el.value.substr(0, comma_pos).escapeHTML().strip();
+					new_value_el.value = new_value_el.value.substr(0, comma_pos).strip();
 				}
 			}
 			else
 			{
-				new_value_el.value = new_value_el.value.gsub(",","").escapeHTML().strip();
+				new_value_el.value = new_value_el.value.strip();
 			}
 			
 			if (!this.options.get("spaceReplace").blank())
@@ -312,7 +312,7 @@ var TextboxList = Class.create({
 			if (!new_value_el.value.blank())
 			{
 				this.newvalue = true;
-				var value = new_value_el.value;
+				var value = new_value_el.value.gsub(",", "").escapeHTML();
 				new_value_el.retrieveData('resizable').clear().focus();
 
 				this.current_input = ""; // stops the value from being added to the element twice
@@ -433,17 +433,24 @@ var TextboxList = Class.create({
 		el.observe('focus', function(e) { if (!this.isSelfEvent('focus')) this.focus(a, true); }.bind(this))
 			.observe('blur', function() { if (!this.isSelfEvent('blur')) this.blur(true); }.bind(this))
 			.observe('keydown', function(e) { this.cacheData('lastvalue', this.value).cacheData('lastcaret', this.getCaretPosition()); })
+			.observe('keypress', function(e)
+				{
+					var charCode = e.charCode || e.keyCode;
+					if (e.keyCode == Event.KEY_RETURN || charCode == Event.CHAR_COMMA)
+					{
+						this.insertCurrentValue = true;
+					}
+				}.bind(this))
 			.observe('keyup', function(e)
 				{
-					switch (e.keyCode)
+					// We need to do the insert on keyup so that a value of just a comma won't be accepted
+					if (this.insertCurrentValue)
 					{
-						case Event.KEY_COMMA:
-						case Event.KEY_RETURN:
-							if (this.insertCurrent())
-							{
-								e.stop();
-							}
-							break;
+						if (this.insertCurrent())
+						{
+							e.stop();
+						}
+						this.insertCurrentValue = false;
 					}
 				}.bind(this));
 
