@@ -61,6 +61,8 @@ Copyright: InteRiders <http://interiders.com/> - Distributed under MIT - Keep th
    - specifies whether autocomplete results should be sorted alphabetically by caption.
  - autoDelay: 250
    - specifies the delay before the autocomplete results appear.
+ - encodeEntities: false
+   - specifies whether HTML entities should be encoded when inserted. Braces are always converted into HTML entities regardless of this setting.
 
 ## Changelog
 
@@ -138,3 +140,9 @@ Copyright: InteRiders <http://interiders.com/> - Distributed under MIT - Keep th
   - Stopped the selected autocomplete result from being added if the input value does not match the result when enter is pressed.
   - Fixed Home and End key events so that they don't scroll the page when pressed within the control.
   - Added autoDelay option (default: 250) to specify the delay before the autocomplete results appear.
+  
+### 0.11
+  - Fixed control not playing well with HTML and entities.
+  - Added encodeEntities option (default: false) that will automatically encode HTML entities to their unicode characters if set.
+  - Fixed < causing a new value to be inserted.
+  - Pressing tab with the autocomplete open will now cause the selected value to be inserted (like enter). 

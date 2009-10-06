@@ -58,6 +58,18 @@ Element.addMethods({
 	}
 });
 
+Object.extend(String.prototype, {
+	entitizeHTML: function()
+	{
+    return this.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+	},
+
+	unentitizeHTML: function()
+	{
+    return this.stripTags().replace(/&lt;/g,'<').replace(/&gt;/g,'>');
+	}
+});
+
 function $pick()
 {
 	for (var i = 0; i < arguments.length; i++)
@@ -160,7 +172,8 @@ var TextboxList = Class.create({
 			onRemove: function(text){},
 			hideempty: true,
 			newValues: false,
-			spaceReplace: ''
+			spaceReplace: '',
+			encodeEntities: false 
 		});
 
 		this.current_input = "";
@@ -229,7 +242,12 @@ var TextboxList = Class.create({
 
 	update: function()
 	{
-		this.element.value = this.bits.values().join(this.options.get('separator'));
+		var values = this.bits.values();
+		if (this.options.get('encodeEntities'))
+		{
+			values = values.map(function(e) { return e.toString().unescapeHTML().entitizeHTML(); });
+		}
+		this.element.value = values.join(this.options.get('separator'));
 		if (!this.current_input.blank())
 		{
 			this.element.value += (this.element.value.blank() ? "" : this.options.get('separator')) + this.current_input;
@@ -312,7 +330,8 @@ var TextboxList = Class.create({
 			if (!new_value_el.value.blank())
 			{
 				this.newvalue = true;
-				var value = new_value_el.value.gsub(",", "").escapeHTML();
+				var value = new_value_el.value.gsub(",", "");
+				value = this.options.get('encodeEntities') ? value.entitizeHTML() : value.escapeHTML();
 				new_value_el.retrieveData('resizable').clear().focus();
 
 				this.current_input = ""; // stops the value from being added to the element twice
@@ -328,7 +347,9 @@ var TextboxList = Class.create({
 	{
 		this.bits.unset(el.id);
 		// Dynamic updating... why not?
-		this.options.get("onRemove")( el.innerHTML.stripScripts().unescapeHTML().replace(/[\n\r\s]+/g, ' ') );
+		var value = el.innerHTML.stripScripts();
+		value = this.options.get('encodeEntities') ? value.entitizeHTML() : value.escapeHTML();
+		this.options.get("onRemove")( value.replace(/[\n\r\s]+/g, ' ') );
 		this.update();
 		
 		if (el.previous() && el.previous().retrieveData('small'))
@@ -680,6 +701,8 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 					
 					var that = this;
 					var el = new Element('li');
+					var caption = result.evalJSON(true).caption;
+					
 					el.observe('click', function(e)
 						{
 							e.stop();
@@ -687,7 +710,7 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 							that.autoAdd(this);
 						})
 						.observe('mouseover', function() { that.autoFocus(this); } )
-						.update(this.autoHighlight(result.evalJSON(true).caption, search));
+						.update(this.autoHighlight(caption, search));
 					
 					this.autoresults.insert(el);
 					el.cacheData('result', result.evalJSON(true));
@@ -724,9 +747,9 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 	
 	autoHighlight: function(html, highlight)
 	{
-		return html.gsub(new RegExp(highlight,'i'), function(match)
+		return html.unescapeHTML().gsub(new RegExp(highlight,'i'), function(match)
 			{
-				return '<em>' + match[0] + '</em>';
+				return '<em>' + match[0].entitizeHTML() + '</em>';
 			}
 		);
 	},
@@ -760,7 +783,8 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 		if (this.data.indexOf(Object.toJSON(text)) == -1)
 		{
 			this.data.push(Object.toJSON(text));
-			this.data_searchable.push(with_case ? Object.toJSON(text).evalJSON(true).caption : Object.toJSON(text).evalJSON(true).caption.toLowerCase());
+			var data_searchable = Object.toJSON(text).evalJSON(true).caption.unescapeHTML();
+			this.data_searchable.push(with_case ? data_searchable : data_searchable.toLowerCase());
 		}
 		return this;
 	},
@@ -769,6 +793,7 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 	{
 		if (!el || !el.retrieveData('result')) return null;
 			
+		this.current_input = "";
 		this.add(el.retrieveData('result'));
 		delete this.data[this.data.indexOf(Object.toJSON(el.retrieveData('result')))];
 		var input = this.lastinput || this.current.retrieveData('input');
@@ -798,6 +823,7 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 				case Event.KEY_UP: e.stop(); return this.autoMove('up');
 				case Event.KEY_DOWN: e.stop(); return this.autoMove('down');
 				case Event.KEY_RETURN:
+				case Event.KEY_TAB:
 					var input_value = this.current.retrieveData('input').getValue();
 					
 					// If the text input is blank and the user hits Enter call the onEmptyInput callback.
@@ -811,7 +837,7 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 
 					// Ensure that the value matches this.autocurrent before autoAdd'ing.
 					// This stops the wrong value from being added if the user types fast and hits enter before a new autocurrent is found
-					if (this.autocurrent && new RegExp(input_value, 'i').test(this.autocurrent.retrieveData('result').caption))
+					if (this.autocurrent && new RegExp(input_value, 'i').test(this.autocurrent.retrieveData('result').caption.unescapeHTML()))
 					{
 						this.autoAdd(this.autocurrent);
 					}
@@ -845,6 +871,7 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 			{
 				case Event.KEY_COMMA:
 				case Event.KEY_RETURN:
+				case Event.KEY_TAB:
 				case Event.KEY_UP:
 				case Event.KEY_DOWN:
 				case Event.KEY_ESC:
@@ -852,7 +879,7 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 				
 				default:
 					// If the user doesn't add comma after, the value is discarded upon submit
-					this.current_input = input.value.strip().escapeHTML();
+					this.current_input = this.options.get('encodeEntities') ? input.value.strip().entitizeHTML() : input.value.strip().escapeHTML();
 					this.update();
 					
 					// Removed Ajax.Request from here and moved to initialize,
