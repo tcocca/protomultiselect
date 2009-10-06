@@ -216,7 +216,7 @@ var TextboxList = Class.create({
 				
 				return null;
 			}.bind(this)
-		).observe(Prototype.Browser.IE ? 'keydown' : 'keypress',
+		).observe(Prototype.Browser.IE || Prototype.Browser.WebKit ? 'keydown' : 'keypress',
 			function(e)
 			{
 				if (!this.current) return null;
@@ -464,6 +464,8 @@ var TextboxList = Class.create({
 				}.bind(this))
 			.observe('keyup', function(e)
 				{
+					if (e.keyCode == Event.KEY_RETURN && !this.insertCurrentValue) this.insertCurrentValue = true;
+
 					// We need to do the insert on keyup so that a value of just a comma won't be accepted
 					if (this.insertCurrentValue)
 					{
