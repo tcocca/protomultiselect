@@ -245,7 +245,7 @@ var TextboxList = Class.create({
 		var values = this.bits.values();
 		if (this.options.get('encodeEntities'))
 		{
-			values = values.map(function(e) { return e.toString().unescapeHTML().entitizeHTML(); });
+			values = values.map(function(e) { return e.toString().unescapeHTML(); });
 		}
 		this.element.value = values.join(this.options.get('separator'));
 		if (!this.current_input.blank())
