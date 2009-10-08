@@ -61,12 +61,12 @@ Element.addMethods({
 Object.extend(String.prototype, {
 	entitizeHTML: function()
 	{
-    return this.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+		return this.replace(/</g,'&lt;').replace(/>/g,'&gt;');
 	},
 
 	unentitizeHTML: function()
 	{
-    return this.stripTags().replace(/&lt;/g,'<').replace(/&gt;/g,'>');
+		return this.replace(/&lt;/g,'<').replace(/&gt;/g,'>');
 	}
 });
 
@@ -429,7 +429,7 @@ var TextboxList = Class.create({
 
 	createBox: function(text, options)
 	{
-		var box = new Element('a', options).addClassName(this.options.get('className') + '-box').update(text.caption).cacheData('type', 'box');
+		var box = new Element('a', options).addClassName(this.options.get('className') + '-box').update(text.caption.entitizeHTML()).cacheData('type', 'box');
 		var a = new Element('a', {
 			href: '#',
 			'class': 'closebutton'
@@ -749,11 +749,12 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 	
 	autoHighlight: function(html, highlight)
 	{
-		return html.unescapeHTML().gsub(new RegExp(highlight,'i'), function(match)
+		// Because the autocomplete will be filled with HTML, we need to escape any HTML in the string
+		return html.entitizeHTML().unescapeHTML().gsub(new RegExp(highlight,'i'), function(match)
 			{
-				return '<em>' + match[0].entitizeHTML() + '</em>';
+				return '<em>' + match[0] + '</em>';
 			}
-		);
+		).gsub(/<(?!\/?em>)/, "&lt;"); // ... except for the <em> tags that we add here.
 	},
 
 	autoHide: function()
@@ -785,7 +786,7 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 		if (this.data.indexOf(Object.toJSON(text)) == -1)
 		{
 			this.data.push(Object.toJSON(text));
-			var data_searchable = Object.toJSON(text).evalJSON(true).caption.unescapeHTML();
+			var data_searchable = Object.toJSON(text).evalJSON(true).caption.unentitizeHTML();
 			this.data_searchable.push(with_case ? data_searchable : data_searchable.toLowerCase());
 		}
 		return this;
@@ -839,7 +840,7 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 
 					// Ensure that the value matches this.autocurrent before autoAdd'ing.
 					// This stops the wrong value from being added if the user types fast and hits enter before a new autocurrent is found
-					if (this.autocurrent && new RegExp(input_value, 'i').test(this.autocurrent.retrieveData('result').caption.unescapeHTML()))
+					if (this.autocurrent && new RegExp(input_value, 'i').test(this.autocurrent.retrieveData('result').caption.unentitizeHTML()))
 					{
 						this.autoAdd(this.autocurrent);
 					}
