@@ -896,7 +896,7 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 						var sanitizer = new RegExp("[({[^$*+?\\\]})]","g");
 						if (this.dosearch)
 						{
-							this.autocurrent = false
+							this.autocurrent = false;
 							this.autoShow(input.value.replace(sanitizer,"\\$1"));
 						}
 					}.bind(this), this.options.get('autoDelay'));
@@ -941,7 +941,7 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 	
 	loadFromInput: function()
   {
-		var input_values = this.element.value.split(',').invoke('strip');
+		var input_values = this.element.value.split(this.options.get('separator')).invoke('strip');
 
     if (this.data.length)
     {
