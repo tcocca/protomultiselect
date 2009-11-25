@@ -75,10 +75,15 @@
         <button onclick="alert($F('demo'));return false;">Get Values</button>
     </div>
     <script language="JavaScript">
+		var control, json_feed;
+		if(typeof console === "undefined") {
+		    console = { log: function() { } };
+		}
+		
         document.observe('dom:loaded', function()
 				{        
           /* Initialize the control */
-          var json_feed = [
+          json_feed = [
 						{ caption: "Zuriel Barron", value: 1 },
 						{ caption: "Osvaldo Tierra", value: 2 },
 						{ caption: "Manuel Mujica Lainez", value: 4 },
@@ -102,14 +107,16 @@
 						{ caption: "Ricardo Rojas", value: 22 }
 					];
 					
-          var control = new ProtoMultiSelect('demo', 'demo-autocomplete', {
+          control = new ProtoMultiSelect('demo', 'demo-autocomplete', {
 						newValues: true,
 						regexSearch: false,
 						feed: json_feed,
 						defaultMessage: "This is the default message",
 						sortResults: true,
-            autoResize: true,
-            encodeEntities: true
+			            autoResize: true,
+			            encodeEntities: false,
+						onAdd: function(el) { console.log("onAdd: " + new Hash(el).inspect()); },
+						onRemoveElem: function(el) { console.log("onRemove: " + new Hash(el).inspect()); },						
 					});
         });    
     </script>

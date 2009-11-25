@@ -554,6 +554,7 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 			maxResults: 0, // 0 = set to default (which is 10 (see MultiSelect class)),
 			wordMatch: false,
 			onEmptyInput: function(input){},
+			onRemove: function(elem){},  // use this instead of onRemove to get the original info on what got removed
 			caseSensitive: false,
 			regexSearch: true,
 			loadFromInput: true,
@@ -577,6 +578,7 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 
 		this.data = [];
 		this.data_searchable = [];
+		this.elem_to_hash = new Hash();
 		
 		// Defines the div that contains autocomplete values
 		this.autoholder = $(autoholder) || this.createAutoholder(autoholder)
@@ -628,6 +630,15 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 		}
 
 		document.observe('click', function() { this.autoHide() }.bindAsEventListener(this));
+	},
+	add: function($super, elem) {
+		var retval = $super(elem);
+		this.elem_to_hash.set(retval, elem);
+		return retval;
+	},
+	dispose: function($super, elem) {
+		this.options.get("onRemoveElem")( this.elem_to_hash.get(elem) );
+		return $super(elem);
 	},
 
 	autoShow: function(search)
