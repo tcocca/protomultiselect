@@ -1,6 +1,8 @@
 /*
 	Proto!MultiSelect
 	Copyright: InteRiders <http://interiders.com/> - Distributed under MIT - Keep this message!
+	
+	Using garrytan's fork: http://github.com/garrytan/protomultiselect
 */
 
 // Added key contstant for COMMA watching happiness
@@ -550,11 +552,13 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 		options = $H({
 			fetchFile: undefined,
 			fetchMethod: 'get',
+			fetchParameters: {},
 			results: 10,
 			maxResults: 0, // 0 = set to default (which is 10 (see MultiSelect class)),
 			wordMatch: false,
 			onEmptyInput: function(input){},
-			onRemove: function(elem){},  // use this instead of onRemove to get the original info on what got removed
+			onUserAdd: function(elem){},  	// use this instead of onAdd to get user actions
+			onUserRemove: function(elem){},  // use this instead of onRemove to to get the original info on what got removed (caption, id)
 			caseSensitive: false,
 			regexSearch: true,
 			loadFromInput: true,
@@ -609,6 +613,7 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 		{
 			new Ajax.Request(this.options.get('fetchFile'), {
 				method: this.options.get('fetchMethod'),
+				parameters: this.options.get('fetchParameters'),
 				onSuccess: function(transport)
 				{
 					transport.responseText.evalJSON(true).each(function(t) { this.autoFeed(t); }.bind(this));
@@ -633,14 +638,13 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 	},
 	add: function($super, elem) {
 		var retval = $super(elem);
-		this.elem_to_hash.set(retval, elem);
+		this.elem_to_hash.set(retval.getAttribute('id'), elem);
 		return retval;
 	},
 	dispose: function($super, elem) {
-		this.options.get("onRemoveElem")( this.elem_to_hash.get(elem) );
+		this.options.get("onUserRemove")( this.elem_to_hash.get(elem.getAttribute('id')) );
 		return $super(elem);
 	},
-
 	autoShow: function(search)
 	{
 		this.autoholder.setStyle({'display': 'block'});
@@ -810,6 +814,8 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 			
 		this.current_input = "";
 		this.add(el.retrieveData('result'));
+		this.options.get("onUserAdd")( el.retrieveData('result') );
+		
 		delete this.data[this.data.indexOf(Object.toJSON(el.retrieveData('result')))];
 		var input = this.lastinput || this.current.retrieveData('input');
 		
