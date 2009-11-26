@@ -148,4 +148,4 @@ Copyright: InteRiders <http://interiders.com/> - Distributed under MIT - Keep th
   - Pressing tab with the autocomplete open will now cause the selected value to be inserted (like enter). 
 
 ### 0.11b (garrytan branch)
-  - Added onRemoveElem that actually returns the value instead of the element (more useful for dynamic add/remove)
+  - Added onUserAdd / onUserRemove (more useful for dynamic add/remove), returns sensible/useful info on what is added/removed, does not include pre-loaded elements.
