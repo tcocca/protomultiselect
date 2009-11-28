@@ -116,8 +116,8 @@
 						sortResults: true,
 			            autoResize: true,
 			            encodeEntities: false,
-						onAdd: function(el) { console.log("onAdd: " + new Hash(el).inspect()); },
-						onRemoveElem: function(el) { console.log("onRemove: " + new Hash(el).inspect()); },						
+						onUserAdd: function(el) { console.log("onAdd: " + new Hash(el).inspect()); },
+						onUserRemove: function(el) { console.log("onRemove: " + new Hash(el).inspect()); },						
 					});
         });    
     </script>

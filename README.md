@@ -149,3 +149,5 @@ Copyright: InteRiders <http://interiders.com/> - Distributed under MIT - Keep th
 
 ### 0.11b (garrytan branch)
   - Added onUserAdd / onUserRemove (more useful for dynamic add/remove), returns sensible/useful info on what is added/removed, does not include pre-loaded elements.
+  - Added inputMessage that prompts the user to click to add (configurable)
+  - Change value to be surrounded by new_value[[...]] so that you can actually tell the difference between numbers and id values.

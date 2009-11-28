@@ -338,7 +338,7 @@ var TextboxList = Class.create({
 				new_value_el.retrieveData('resizable').clear().focus();
 
 				this.current_input = ""; // stops the value from being added to the element twice
-				this.add({ caption: value, value: value, newValue: true });
+				this.add({ caption: value, value: "new_value[[" + value + "]]", newValue: true });
 
 				return true;
 			}
