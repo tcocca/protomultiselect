@@ -27,6 +27,8 @@ Copyright: InteRiders <http://interiders.com/> - Distributed under MIT - Keep th
  - hideempty: true
  - newValues: false 
    - allow new values to be created
+ - allowDuplicates: false 
+   - checks user input against data that was already added to the selected set, and rejects user input if duplicate
  - newValueDelimiters: ['[',']']
    - define what values split into new entries
  - spaceReplace: ''
@@ -53,10 +55,16 @@ Copyright: InteRiders <http://interiders.com/> - Distributed under MIT - Keep th
    - callback that is called when a new element is added to input.  Argument is an object containing caption  and value members.  If it's a newvalue, caption will be nil.
  - onRemove: function( value ){}
    - callback that is called when a element is removed from the input.  Argument is the value of the element. 
+ - onUserAdd: function(x){}
+   - more useful callback than onAdd -- passes back object hash with relevant info e.g. {'caption': 'zuriel barro', 'value': 'new_value[[zuriel barro]]', 'newValue': true}, and only is passed back when the user does an action (does not callback on pre-populated items)
+ - onUserRemove: function(x){}
+   - same as onUserAdd, but for removal / disposal of an item
  - loadFromInput: true
 	 - specifies whether to add any values given in the initial text input to the control. Values will be loaded against any data provide
  - defaultMessage: ""
 	 - if the control is building the autocomplete div itself, specifies the default message to use.
+ - inputMessage: null
+	 - Shows an input message so that the user knows to click on the textbox to add more items. Goes away once the user gives focus.
  - sortResults: false
    - specifies whether autocomplete results should be sorted alphabetically by caption.
  - autoDelay: 250
