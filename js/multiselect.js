@@ -453,7 +453,6 @@ var TextboxList = Class.create({
 	{
 		var a = new Element('a', { 'class': this.options.get('className') + '-input' });
 		var el = new Element('input', Object.extend(options,{ type: 'text', autocomplete: 'off' }));
-		this.inputBox = el;
 		
 		el.observe('focus', function(e) { if (!this.isSelfEvent('focus')) this.focus(a, true); }.bind(this))
 			.observe('blur', function() { if (!this.isSelfEvent('blur')) this.blur(true); }.bind(this))
@@ -637,6 +636,23 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 		}
 
 		document.observe('click', function() { this.autoHide() }.bindAsEventListener(this));
+		
+		// Setup inputmessage
+		this.inputElem = this.maininput.firstDescendant(); 
+		if (this.options.get('inputMessage')) {
+			this.inputElem.setValue(this.options.get('inputMessage'));
+			this.inputElem.retrieveData('resizable').setElementWidth();
+			this.messageCleared = false;
+			this.inputElem.addClassName('inputMessage');
+			this.inputElem.observe('focus', function(e) {
+				if (!this.messageCleared) {
+					this.inputElem.setValue('');
+					this.inputElem.retrieveData('resizable').setElementWidth();					
+					this.inputElem.removeClassName('inputMessage');
+					this.messageCleared = true;	
+				}
+			}.bindAsEventListener(this));
+		}
 	},
 	add: function($super, elem) {
 		var retval = $super(elem);
@@ -835,19 +851,6 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 	{
 		var box = $super(options);
 		var input = box.retrieveData('input');
-		
-		if (this.options.get('inputMessage')) {
-			input.value = this.options.get('inputMessage');
-			this.messageCleared = false;
-			this.inputBox.addClassName('inputMessage');
-			input.observe('focus', function(e) {
-				if (!this.messageCleared) {
-					this.inputBox.value = '';
-					this.inputBox.removeClassName('inputMessage');
-					this.messageCleared = true;	
-				}
-			}.bindAsEventListener(this));
-		}
 
 		input.observe('keydown', function(e)
 		{
