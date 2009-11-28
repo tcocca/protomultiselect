@@ -147,7 +147,10 @@ Copyright: InteRiders <http://interiders.com/> - Distributed under MIT - Keep th
   - Fixed < causing a new value to be inserted.
   - Pressing tab with the autocomplete open will now cause the selected value to be inserted (like enter). 
 
-### 0.11b (garrytan branch)
+### 0.12
+  - Changes by Garry Tan (garry@posterous.com)
   - Added onUserAdd / onUserRemove (more useful for dynamic add/remove), returns sensible/useful info on what is added/removed, does not include pre-loaded elements.
   - Added inputMessage that prompts the user to click to add (configurable)
   - Change value to be surrounded by new_value[[...]] so that you can actually tell the difference between numbers and id values.
+  - Added 'Add **search**' to list of options if it is a new value. Needed because otherwise there's no way for the user to add a value that partial matches against the existing set (ENTER will add the first autofocused option instead of what the user typed, and comma works, but that isn't good enough.)
+  - Added allowDuplicates flag that prevents dupe content if set to true. Uses a normalized version of the caption to determine duplicate.

@@ -61,7 +61,7 @@
   </head>
   
   <body id="test">
-    <h1>Proto!MultiSelect 0.11</h1>
+    <h1>Proto!MultiSelect 0.12</h1>
     <div id="text"></div>
     <form action="test_submit" method="get" accept-charset="utf-8">
       <ol>        
@@ -116,6 +116,7 @@
 						sortResults: true,
 			            autoResize: true,
 			            encodeEntities: false,
+						allowDuplicates: false,
 						onUserAdd: function(el) { console.log("onAdd: " + new Hash(el).inspect()); },
 						onUserRemove: function(el) { console.log("onRemove: " + new Hash(el).inspect()); },						
 					});

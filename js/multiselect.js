@@ -294,8 +294,7 @@ var TextboxList = Class.create({
 		return el;
 	},
 
-	addSmallInput: function(el, where)
-	{
+	addSmallInput: function(el, where) {
 		var input = this.createInput({ 'class': 'smallinput' });
 		el.insert({}[where] = input);
 		input.cacheData('small', true);
@@ -304,34 +303,27 @@ var TextboxList = Class.create({
 		return input;
 	},
 
-	insertCurrent: function()
-	{
-		if (this.options.get('newValues'))
-		{
+	insertCurrent: function() {
+		if (this.options.get('newValues')) {
 			var new_value_el = this.current.retrieveData('input');
 
 			new_value_el.value = new_value_el.value.strip();
 			
-			if (new_value_el.value.indexOf(",") < (new_value_el.value.length - 1))
-			{
+			if (new_value_el.value.indexOf(",") < (new_value_el.value.length - 1)) {
 				var comma_pos = new_value_el.value.indexOf(",");
-				if (comma_pos > 0)
-				{
+				if (comma_pos > 0) {
 					new_value_el.value = new_value_el.value.substr(0, comma_pos).strip();
 				}
-			}
-			else
-			{
+				
+			} else {
 				new_value_el.value = new_value_el.value.strip();
 			}
 			
-			if (!this.options.get("spaceReplace").blank())
-			{
+			if (!this.options.get("spaceReplace").blank()) {
 				new_value_el.value.gsub(" ", this.options.get("spaceReplace"));
 			}
 			
-			if (!new_value_el.value.blank())
-			{
+			if (!new_value_el.value.blank()) {
 				this.newvalue = true;
 				var value = new_value_el.value.gsub(",", "");
 				value = this.options.get('encodeEntities') ? value.entitizeHTML() : value.escapeHTML();
@@ -346,8 +338,7 @@ var TextboxList = Class.create({
 		return false;
 	},
 
-	dispose: function(el)
-	{
+	dispose: function(el) {
 		this.bits.unset(el.id);
 		// Dynamic updating... why not?
 		var value = el.innerHTML.stripScripts();
@@ -565,6 +556,7 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 			defaultMessage: "",	// Used to provide the default autocomplete message if built by the control
 			inputMessage: null, // Used to provide a default message in the input box
 			sortResults: false,
+			allowDuplicates: false, // prevent dupes by checking for duplicate normalized captions
 			autoDelay: 250,
 			autoResize: false
 		}).update(options);
@@ -583,7 +575,7 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 
 		this.data = [];
 		this.data_searchable = [];
-		this.elem_to_hash = new Hash();
+		this.selectedValues = new Hash();
 		
 		// Defines the div that contains autocomplete values
 		this.autoholder = $(autoholder) || this.createAutoholder(autoholder)
@@ -656,84 +648,115 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 	},
 	add: function($super, elem) {
 		var retval = $super(elem);
-		this.elem_to_hash.set(retval.getAttribute('id'), elem);
+		this.selectedValues.set(retval.getAttribute('id'), elem);
 		return retval;
 	},
 	dispose: function($super, elem) {
-		this.options.get("onUserRemove")( this.elem_to_hash.get(elem.getAttribute('id')) );
+		this.options.get("onUserRemove")( this.selectedValues.get(elem.getAttribute('id')) );
+		this.selectedValues.unset(elem.getAttribute('id'));
 		return $super(elem);
 	},
-	autoShow: function(search)
-	{
+	foundInData: function(search) {
+		return this.data.find(
+			function(d) {
+				var dataObj = d.evalJSON(true);
+				return (dataObj && (dataObj.caption.toLowerCase().gsub(' ', '') == search.toLowerCase().gsub(' ', ''))); 
+			});
+	 },
+	foundInSelectedValues: function(search) {
+		return this.selectedValues.values().find(function(elem) {
+			return elem && elem.caption && elem.caption.toLowerCase().gsub(' ', '') == search.toLowerCase().gsub(' ', '');
+		});
+	},
+	
+	insertCurrent: function($super, elem) { 
+		var new_value_el = this.current.retrieveData('input');
+		new_value_el.value = new_value_el.value.strip();
+		var search = new_value_el.value;
+		if (this.options.get('newValues') && (this.options.get('allowDuplicates') || (!this.foundInSelectedValues(search) && !this.foundInData(search)))) {
+			return $super(elem);
+		}
+		return false;
+	},
+	
+	autoShow: function(search) {
 		this.autoholder.setStyle({'display': 'block'});
 		this.autoholder.descendants().each(function(e) { e.hide(); });
 		
-		if (!search || !search.strip() || (!search.length || search.length < this.loptions.get('autocomplete').minchars))
-		{
-			if (this.autoholder.select('.default').first())
-			{
+		if (!search || !search.strip() || (!search.length || search.length < this.loptions.get('autocomplete').minchars)) {
+			if (this.autoholder.select('.default').first()) {
 				this.autoholder.select('.default').first().setStyle({'display': 'block'});
 			}
 			this.resultsshown = false;
-		}
-		else
-		{
+			
+		} else {
 			this.resultsshown = true;
 			this.autoresults.setStyle({'display': 'block'}).update('');
 			
-			if (!this.options.get('regexSearch'))
-			{
+			if (!this.options.get('regexSearch')) {
 				var matches = new Array();
-				if (search)
-				{
-					if (!this.options.get('caseSensitive'))
-					{
+				if (search) {
+					if (!this.options.get('caseSensitive')) {
 						search = search.toLowerCase();
 					}
 					
-					for (var matches_found = 0, i = 0, len = this.data_searchable.length; i < len; i++)
-					{
-						if (this.data_searchable[i].indexOf(search) >= 0)
-						{
+					for (var matches_found = 0, i = 0, len = this.data_searchable.length; i < len; i++) {
+						if (this.data_searchable[i].indexOf(search) >= 0) {
 							var v = this.data[i];
-							if (v !== undefined)
-							{
+							if (v !== undefined) {
 								matches[matches_found++] = v;
 							}
 						}
 					}
+					
 				}
-			}
-			else
-			{
-				if (this.options.get('wordMatch'))
-				{
+				
+			} else {
+				if (this.options.get('wordMatch')) {
 					var regexp = new RegExp("(^|\\s)"+search,(!this.options.get('caseSensitive') ? 'i' : ''));
-				}
-				else
-				{
+				} else {
 					var regexp = new RegExp(search,(!this.options.get('caseSensitive') ? 'i' : ''));
 				}
 				
 				var matches = this.data.filter(
-					function(str)
-					{
+					function(str) {
 						return str ? regexp.test(str.evalJSON(true).caption) : false;
 					}
 				);
 			}
 			
-			if (this.options.get('sortResults'))
-			{
-				matches = matches.sortBy(function(el) { return el.evalJSON(true).caption })
+			if (this.options.get('sortResults')) {
+				matches = matches.sortBy(function(el) { return el.evalJSON(true).caption });
 			}
-
+			
 			var count = 0;
+			var extra_elems_count = 0;
+			var special_add_el = null;
+			
+			// "Add **search**" element
+			if (this.options.get('newValues') && (this.options.get('allowDuplicates') || (!this.foundInSelectedValues(search) && !this.foundInData(search)))) {
+				count++;
+				extra_elems_count++;
+				
+			 	special_add_el = new Element('li');
+				special_add_el.addClassName('add-value-special-element');
+				special_add_el.cacheData('result', { caption: search, value: "new_value[[" + search + "]]", newValue: true })
+				special_add_el.cacheData('input', this.inputElem);
+				special_add_el.observe('click', function(e) { 
+					e.stop();
+					this.current_input = "";
+					this.autoAdd(special_add_el);
+				}.bindAsEventListener(this)).observe('mouseover',function() { 
+					this.autoFocus(special_add_el); 
+				}.bindAsEventListener(this)).update("Add <b>" + search + "</b>");
+				this.autoresults.insert(special_add_el);
+			}
+			
+			// Handle matches...
 			matches.each(
-				function(result, ti)
-				{
+				function(result, ti) {
 					count++;
-					if (ti >= (this.options.get('maxResults') ? this.options.get('maxResults') : this.loptions.get('autocomplete').maxresults)) return;
+					if (ti >= ((this.options.get('maxResults') ? this.options.get('maxResults') : this.loptions.get('autocomplete').maxresults) - extra_elems_count)) return;
 					
 					var that = this;
 					var el = new Element('li');
@@ -753,26 +776,23 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 					if (ti == 0) this.autoFocus(el);
 				}, this
 			);
+			
+			if (extra_elems_count == count) {
+				this.autoFocus(special_add_el);
+			}
 		}
 	
-		if (count == 0)
-		{
+		if (count == 0) {
 			// if there are no results, hide everything so that KEY_RETURN has no effect
 			this.autocurrent = false;
 			this.autoHide();
-		}
-		else
-		{
-			if (this.autoresults.firstDescendant())
-			{
+		} else {
+			if (this.autoresults.firstDescendant()) {
 				var autoresult_height = this.autoresults.firstDescendant().offsetHeight + 1;
 
-				if (count > this.options.get('results'))
-				{
+				if (count > this.options.get('results')) {
 					this.autoresults.setStyle({'height': (this.options.get('results') * autoresult_height) + 'px'});
-				}
-				else
-				{
+				} else {
 					this.autoresults.setStyle({'height': (count ? (count * autoresult_height) : 0) + 'px'});
 				}
 			}
@@ -874,14 +894,16 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 					
 					e.stop();
 
+					// // find "special add button"
+					// console.log(this.autocurrent.inspect());
+					// if (this.autocurrent.hasClassName('add-value-special-element')) {
+					// 
+					
 					// Ensure that the value matches this.autocurrent before autoAdd'ing.
 					// This stops the wrong value from being added if the user types fast and hits enter before a new autocurrent is found
-					if (this.autocurrent && new RegExp(input_value, 'i').test(this.autocurrent.retrieveData('result').caption.unentitizeHTML()))
-					{
+					if (this.autocurrent && new RegExp(input_value, 'i').test(this.autocurrent.retrieveData('result').caption.unentitizeHTML())) {
 						this.autoAdd(this.autocurrent);
-					}
-					else
-					{
+					} else {
 						this.autoHide();
 					}
 					
