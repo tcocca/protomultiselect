@@ -453,6 +453,7 @@ var TextboxList = Class.create({
 	{
 		var a = new Element('a', { 'class': this.options.get('className') + '-input' });
 		var el = new Element('input', Object.extend(options,{ type: 'text', autocomplete: 'off' }));
+		this.inputBox = el;
 		
 		el.observe('focus', function(e) { if (!this.isSelfEvent('focus')) this.focus(a, true); }.bind(this))
 			.observe('blur', function() { if (!this.isSelfEvent('blur')) this.blur(true); }.bind(this))
@@ -563,6 +564,7 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 			regexSearch: true,
 			loadFromInput: true,
 			defaultMessage: "",	// Used to provide the default autocomplete message if built by the control
+			inputMessage: null, // Used to provide a default message in the input box
 			sortResults: false,
 			autoDelay: 250,
 			autoResize: false
@@ -747,7 +749,7 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 		{
 			if (this.autoresults.firstDescendant())
 			{
-				var autoresult_height = this.autoresults.firstDescendant().offsetHeight;
+				var autoresult_height = this.autoresults.firstDescendant().offsetHeight + 1;
 
 				if (count > this.options.get('results'))
 				{
@@ -833,6 +835,19 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 	{
 		var box = $super(options);
 		var input = box.retrieveData('input');
+		
+		if (this.options.get('inputMessage')) {
+			input.value = this.options.get('inputMessage');
+			this.messageCleared = false;
+			this.inputBox.addClassName('inputMessage');
+			input.observe('focus', function(e) {
+				if (!this.messageCleared) {
+					this.inputBox.value = '';
+					this.inputBox.removeClassName('inputMessage');
+					this.messageCleared = true;	
+				}
+			}.bindAsEventListener(this));
+		}
 
 		input.observe('keydown', function(e)
 		{
