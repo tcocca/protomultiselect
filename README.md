@@ -18,6 +18,7 @@ Copyright: InteRiders <http://interiders.com/> - Distributed under MIT - Keep th
  - Chris Anderton <http://thewebfellas.com/>
  - Dejan Strbac
  - Daniel Vandersluis <http://www.codexed.com/>
+ - Garry Tan <http://axonflux.com>
 
 ## Parameters (and defaults)
 
