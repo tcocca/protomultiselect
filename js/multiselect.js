@@ -1004,29 +1004,34 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 		return div
 	},
 	
-	loadFromInput: function()
-  {
-		var input_values = this.element.value.split(this.options.get('separator')).invoke('strip');
+	loadFromInput: function() {
+		if (this.options.get('jsonInputValue')) {
+			// parse from json format [{caption: 'abc', value: 1},{caption: 'def', value: 'def', newValue: true}]
+			console.log(' input: ' + this.element.value);
+			var input_values = this.element.value.evalJSON(true);
+			console.log(' output ' + input_values.inspect());			
+			if (this.data.length) {
+				input_values.each(function(el) { this.add(el); }.bindAsEventListener(this));
+			}
+		} else {
+			var input_values = this.element.value.split(this.options.get('separator')).invoke('strip');
 
-    if (this.data.length)
-    {
-      this.data.select(function(el) { return input_values.include(el.evalJSON(true).value) }).each(function(el)
-      {
-        el = el.evalJSON(true);
-        this.add({ value: el.value, caption: el.caption});
-        delete this.data[this.data.indexOf(Object.toJSON(el))];
-        input_values = input_values.without(el.value);
-      }, this);
-    }
-    
-    input_values.each(function(el)
-    {
-      if (!el.empty())
-      {
-        this.add({ value: el, caption: el });
-      }
-    }, this);
-  }
+			if (this.data.length) {
+			  this.data.select(function(el) { return input_values.include(el.evalJSON(true).value) }).each(function(el) {
+			    el = el.evalJSON(true);
+			    this.add({ value: el.value, caption: el.caption});
+			    delete this.data[this.data.indexOf(Object.toJSON(el))];
+			    input_values = input_values.without(el.value);
+			  }, this);
+			}
+
+			input_values.each(function(el) {
+			  if (!el.empty()) {
+			    this.add({ value: el, caption: el });
+			  }
+			}, this);			
+		}
+	}
 });
 
 
