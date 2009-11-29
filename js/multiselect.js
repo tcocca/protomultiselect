@@ -648,7 +648,6 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 			this.inputElem.observe('focus', function(e) {
 				if (!this.messageCleared) {
 					this.inputElem.setValue('');
-					this.inputElem.retrieveData('resizable').setElementWidth();					
 					this.inputElem.removeClassName('inputMessage');
 					this.messageCleared = true;	
 				}
