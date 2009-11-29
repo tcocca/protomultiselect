@@ -1009,7 +1009,10 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 			// parse from json format [{caption: 'abc', value: 1},{caption: 'def', value: 'def', newValue: true}]
 			var input_values = this.element.value.evalJSON(true);
 			if (this.data.length) {
-				input_values.each(function(el) { this.add(el); }.bindAsEventListener(this));
+				input_values.each(function(el) { 
+					this.add(el); 
+					if (!el.newValue) delete this.data[this.data.indexOf(Object.toJSON(el))];			    
+				}.bindAsEventListener(this));
 			}
 		} else {
 			var input_values = this.element.value.split(this.options.get('separator')).invoke('strip');
