@@ -175,7 +175,8 @@ var TextboxList = Class.create({
 			hideempty: true,
 			newValues: false,
 			spaceReplace: '',
-			encodeEntities: false 
+			encodeEntities: false,
+			jsonInputValue: false
 		});
 
 		this.current_input = "";
@@ -245,14 +246,17 @@ var TextboxList = Class.create({
 	update: function()
 	{
 		var values = this.bits.values();
-		if (this.options.get('encodeEntities'))
-		{
-			// entitizeHTML / unentitizeHTML needs to be called around the unescapeHTML() call in order to preserve any braces
-			values = values.map(function(e) { return e.toString().entitizeHTML().unescapeHTML().unentitizeHTML(); });
+		if (this.options.get('jsonInputValue')) {
+			this.element.value = values.toJSON();
+		} else {
+	 		if (this.options.get('encodeEntities')) {
+				// entitizeHTML / unentitizeHTML needs to be called around the unescapeHTML() call in order to preserve any braces
+				values = values.map(function(e) { return e.toString().entitizeHTML().unescapeHTML().unentitizeHTML(); });
+			}
+			this.element.value = values.join(this.options.get('separator'));			
 		}
-		this.element.value = values.join(this.options.get('separator'));
-		if (!this.current_input.blank())
-		{
+		
+		if (!this.current_input.blank()) {
 			this.element.value += (this.element.value.blank() ? "" : this.options.get('separator')) + this.current_input;
 		}
 		return this;
@@ -281,7 +285,12 @@ var TextboxList = Class.create({
 			}.bind(this)
 		);
 		
-		this.bits.set(id, text.value);
+		if (this.options.get('jsonInputValue')) {
+			this.bits.set(id, text);
+		} else { 
+			this.bits.set(id, text.value);			
+		}
+		
 		// Dynamic updating... why not?
 		this.update(); 
 		
@@ -330,7 +339,7 @@ var TextboxList = Class.create({
 				new_value_el.retrieveData('resizable').clear().focus();
 
 				this.current_input = ""; // stops the value from being added to the element twice
-				this.add({ caption: value, value: "new_value[[" + value + "]]", newValue: true });
+				this.add({ caption: value, value: value, newValue: true });
 
 				return true;
 			}

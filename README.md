@@ -72,6 +72,8 @@ Copyright: InteRiders <http://interiders.com/> - Distributed under MIT - Keep th
    - specifies the delay before the autocomplete results appear.
  - encodeEntities: false
    - specifies whether HTML entities should be encoded when inserted. Braces are always converted into HTML entities regardless of this setting.
+ - jsonInputValue: false
+   - when true, instead of setting just values to the input value, we pass the full array of selected items in json format
 
 ## Changelog
 
@@ -160,6 +162,6 @@ Copyright: InteRiders <http://interiders.com/> - Distributed under MIT - Keep th
   - Changes by Garry Tan (garry@posterous.com)
   - Added onUserAdd / onUserRemove (more useful for dynamic add/remove), returns sensible/useful info on what is added/removed, does not include pre-loaded elements.
   - Added inputMessage that prompts the user to click to add (configurable)
-  - Change value to be surrounded by new_value[[...]] so that you can actually tell the difference between numbers and id values.
   - Added 'Add **search**' to list of options if it is a new value. Needed because otherwise there's no way for the user to add a value that partial matches against the existing set (ENTER will add the first autofocused option instead of what the user typed, and comma works, but that isn't good enough.)
   - Added allowDuplicates flag that prevents dupe content if set to true. Uses a normalized version of the caption to determine duplicate.
+  - Add jsonInputValue so that the input value can be set to a json array instead of id's -- useful when you need to know what are new values and/or caption info.
