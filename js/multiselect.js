@@ -749,7 +749,7 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 				
 			 	special_add_el = new Element('li');
 				special_add_el.addClassName('add-value-special-element');
-				special_add_el.cacheData('result', { caption: search, value: "new_value[[" + search + "]]", newValue: true })
+				special_add_el.cacheData('result', { caption: search, value: search, newValue: true })
 				special_add_el.cacheData('input', this.inputElem);
 				special_add_el.observe('click', function(e) { 
 					e.stop();
