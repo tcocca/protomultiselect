@@ -665,15 +665,15 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 		return $super(elem);
 	},
 	foundInData: function(search) {
-		return this.data.find(
-			function(d) {
-				var dataObj = d.evalJSON(true);
-				return (dataObj && (dataObj.caption.toLowerCase().gsub(' ', '') == search.toLowerCase().gsub(' ', ''))); 
-			});
+		return this.data.find(function(d) {
+			if (!d) return false;
+			var dataObj = d.evalJSON(true);
+			return (dataObj && (dataObj.caption.toLowerCase().gsub(' ', '') == search.toLowerCase().gsub(' ', ''))); 
+		});
 	 },
 	foundInSelectedValues: function(search) {
 		return this.selectedValues.values().find(function(elem) {
-			return elem && elem.caption && elem.caption.toLowerCase().gsub(' ', '') == search.toLowerCase().gsub(' ', '');
+			return (elem && elem.caption && (elem.caption.toLowerCase().gsub(' ', '') == search.toLowerCase().gsub(' ', '')));
 		});
 	},
 	
