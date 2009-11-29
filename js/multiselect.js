@@ -1007,9 +1007,7 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 	loadFromInput: function() {
 		if (this.options.get('jsonInputValue')) {
 			// parse from json format [{caption: 'abc', value: 1},{caption: 'def', value: 'def', newValue: true}]
-			console.log(' input: ' + this.element.value);
 			var input_values = this.element.value.evalJSON(true);
-			console.log(' output ' + input_values.inspect());			
 			if (this.data.length) {
 				input_values.each(function(el) { this.add(el); }.bindAsEventListener(this));
 			}
