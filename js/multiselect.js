@@ -249,7 +249,10 @@ var TextboxList = Class.create({
 		var values = this.bits.values();
 		if (this.options.get('jsonInputValue')) {
 			if (!this.current_input.blank()) {
-				values.push({caption: this.current_input, value: this.current_input, newValue: true});
+				this.current_input.split(/,/).each(function(value) {
+					value = value.strip();
+					values.push({caption: value, value: value, newValue: true});
+				}.bindAsEventListener(this))
 			}
 			this.element.value = values.toJSON();
 		} else {
