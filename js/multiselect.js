@@ -99,7 +99,8 @@ var ResizableTextbox = Class.create({
 		this.setElementWidth();
 
 		this.el.observe('keypress', this.setElementWidth.bind(this))
-					 .observe('keyup', this.setElementWidth.bind(this));
+				 .observe('change', this.setElementWidth.bind(this))
+				 .observe('keyup', this.setElementWidth.bind(this));
 	},
 
 	calculateWidth: function()
@@ -247,6 +248,9 @@ var TextboxList = Class.create({
 	{
 		var values = this.bits.values();
 		if (this.options.get('jsonInputValue')) {
+			if (!this.current_input.blank()) {
+				values.push({caption: this.current_input, value: this.current_input, newValue: true});
+			}
 			this.element.value = values.toJSON();
 		} else {
 	 		if (this.options.get('encodeEntities')) {
@@ -254,11 +258,13 @@ var TextboxList = Class.create({
 				values = values.map(function(e) { return e.toString().entitizeHTML().unescapeHTML().unentitizeHTML(); });
 			}
 			this.element.value = values.join(this.options.get('separator'));			
+
+			if (!this.current_input.blank()) {
+				this.element.value += (this.element.value.blank() ? "" : this.options.get('separator')) + this.current_input;
+			}
+			
 		}
 		
-		if (!this.current_input.blank()) {
-			this.element.value += (this.element.value.blank() ? "" : this.options.get('separator')) + this.current_input;
-		}
 		return this;
 	},
 
