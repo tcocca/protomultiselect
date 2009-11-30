@@ -676,15 +676,28 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 			return (elem && elem.caption && (elem.caption.toLowerCase().gsub(' ', '') == search.toLowerCase().gsub(' ', '')));
 		});
 	},
+	isSearchInsertable: function(new_value) {
+		return (this.options.get('newValues') && (this.options.get('allowDuplicates') || (!this.foundInSelectedValues(new_value) && !this.foundInData(new_value))));
+	},
 	
 	insertCurrent: function($super, elem) { 
+		var retval = false;
 		var new_value_el = this.current.retrieveData('input');
-		new_value_el.value = new_value_el.value.strip();
-		var search = new_value_el.value;
-		if (this.options.get('newValues') && (this.options.get('allowDuplicates') || (!this.foundInSelectedValues(search) && !this.foundInData(search)))) {
-			return $super(elem);
-		}
-		return false;
+		
+		// handle pasted commas
+		new_value_el.value.split(/,/).each(function(new_value) { 
+			if (new_value && new_value != '' && this.isSearchInsertable(new_value)) {
+				new_value = new_value.strip();
+				new_value_el.value = new_value;
+				
+				if ($super()) {
+					this.options.get("onUserAdd")( {caption: new_value, value: new_value, newValue: true } );
+					retval = true;					
+				}
+			}
+		}.bindAsEventListener(this));
+		
+		return retval;
 	},
 	
 	autoShow: function(search) {
@@ -742,7 +755,7 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 			var special_add_el = null;
 			
 			// "Add **search**" element
-			if (this.options.get('newValues') && (this.options.get('allowDuplicates') || (!this.foundInSelectedValues(search) && !this.foundInData(search)))) {
+			if (this.isSearchInsertable(search)) {
 				count++;
 				extra_elems_count++;
 				
@@ -859,15 +872,28 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 		if (!el || !el.retrieveData('result')) return null;
 			
 		this.current_input = "";
-		this.add(el.retrieveData('result'));
-		this.options.get("onUserAdd")( el.retrieveData('result') );
+		var new_value = el.retrieveData('result');
 		
-		delete this.data[this.data.indexOf(Object.toJSON(el.retrieveData('result')))];
+		// handle commas in new values
+		if (new_value.newValue) {
+			values = new_value.caption.split(/,/).each(function(search) {
+				if (search && search != '' && this.isSearchInsertable(search)) {
+					this.autoAddSingle({caption: search, value: search, newValue: true});
+				}
+			}.bindAsEventListener(this));
+		} else {
+			this.autoAddSingle(new_value);
+		}
 		var input = this.lastinput || this.current.retrieveData('input');
 		
 		this.autoHide();
 		input.retrieveData('resizable').clear().focus();
 		return this;
+	},
+	autoAddSingle: function(new_value) {
+		this.add(new_value);
+		this.options.get("onUserAdd")( new_value );		
+		delete this.data[this.data.indexOf(Object.toJSON( new_value ))];
 	},
 
 	autoResize: function()
@@ -902,14 +928,9 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 					
 					e.stop();
 
-					// // find "special add button"
-					// console.log(this.autocurrent.inspect());
-					// if (this.autocurrent.hasClassName('add-value-special-element')) {
-					// 
-					
 					// Ensure that the value matches this.autocurrent before autoAdd'ing.
 					// This stops the wrong value from being added if the user types fast and hits enter before a new autocurrent is found
-					if (this.autocurrent && new RegExp(input_value, 'i').test(this.autocurrent.retrieveData('result').caption.unentitizeHTML())) {
+					if (this.autocurrent && new RegExp(RegExp.escape(input_value), 'i').test(this.autocurrent.retrieveData('result').caption.unentitizeHTML())) {
 						this.autoAdd(this.autocurrent);
 					} else {
 						this.autoHide();
@@ -958,11 +979,10 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 					
 					this.searchTimeout = setTimeout(function()
 					{
-						var sanitizer = new RegExp("[({[^$*+?\\\]})]","g");
 						if (this.dosearch)
 						{
 							this.autocurrent = false;
-							this.autoShow(input.value.replace(sanitizer,"\\$1"));
+							this.autoShow(input.value.escapeHTML());
 						}
 					}.bind(this), this.options.get('autoDelay'));
 			}
