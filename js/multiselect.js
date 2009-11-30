@@ -743,9 +743,9 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 				
 			} else {
 				if (this.options.get('wordMatch')) {
-					var regexp = new RegExp("(^|\\s)"+search,(!this.options.get('caseSensitive') ? 'i' : ''));
+					var regexp = new RegExp("(^|\\s)"+RegExp.escape(search),(!this.options.get('caseSensitive') ? 'i' : ''));
 				} else {
-					var regexp = new RegExp(search,(!this.options.get('caseSensitive') ? 'i' : ''));
+					var regexp = new RegExp(RegExp.escape(search),(!this.options.get('caseSensitive') ? 'i' : ''));
 				}
 				
 				var matches = this.data.filter(
@@ -834,7 +834,7 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 	autoHighlight: function(html, highlight)
 	{
 		// Because the autocomplete will be filled with HTML, we need to escape any HTML in the string
-		return html.entitizeHTML().unescapeHTML().gsub(new RegExp(highlight,'i'), function(match)
+		return html.entitizeHTML().unescapeHTML().gsub(new RegExp(RegExp.escape(highlight),'i'), function(match)
 			{
 				return '<em>' + match[0] + '</em>';
 			}
