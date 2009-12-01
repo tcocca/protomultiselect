@@ -4,10 +4,10 @@
 	  <head>
 	    <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
 	    <title>Proto!MultiSelect Demo</title>
-	    <link rel="stylesheet" href="css/multiselect.css" type="text/css" media="screen" title="Test Stylesheet" charset="utf-8" />
-	    <script src="js/prototype/prototype.js" type="text/javascript" charset="utf-8"></script>
-	    <script src="js/prototype/scriptaculous.js" type="text/javascript" charset="utf-8"></script>
-	    <script src="js/multiselect.js" type="text/javascript" charset="utf-8"></script>
+	    <link rel="stylesheet" href="../css/multiselect.css" type="text/css" media="screen" title="Test Stylesheet" charset="utf-8" />
+	    <script src="../js/prototype/prototype.js" type="text/javascript" charset="utf-8"></script>
+	    <script src="../js/prototype/scriptaculous.js" type="text/javascript" charset="utf-8"></script>
+	    <script src="../js/multiselect.js" type="text/javascript" charset="utf-8"></script>
 			<style>
 				#button_container
 				{
@@ -57,6 +57,16 @@
 	      {
 	        width: 90%
 	      }
+	
+	
+		div.autocomplete { display: block; margin-right: 2px; height: 100px; position: static; background: #eee; overflow: auto; background-color: #fff; border: 1px solid #ccc; border-top: none;}
+		div.autocomplete .default { padding: 5px 7px; border: none; }
+		div.autocomplete ul { display: block; margin: 0; padding: 0; overflow: auto; }
+		div.autocomplete ul li { padding: 5px 12px; z-index: 1000; cursor: pointer; margin: 0; list-style-type: none; border: 1px solid #ccc; border-width: 0 1px 1px; float: left; width: 100px; height: 50px; }
+		div.autocomplete ul li em { font-weight: bold; font-style: normal; background: #ccc; }
+		div.autocomplete ul li.auto-focus { background: #4173CC; color: #fff; }
+		div.autocomplete ul li.auto-focus em { background: none; }	
+	
 			</style>
 	  </head>
 
@@ -84,27 +94,27 @@
 					{        
 	          /* Initialize the control */
 	          json_feed = [
-							{ caption: "Zuriel Barron", value: 1 },
-							{ caption: "Osvaldo Tierra", value: 2 },
-							{ caption: "Manuel Mujica Lainez", value: 4 },
-							{ caption: "Gustavo Nielsen", value: 5 },
-							{ caption: "Silvina Ocampo", value: 6 },
-							{ caption: "Victoria Ocampo", value: 7 },
-							{ caption: "Hector German Oesterheld", value: 8 },
-							{ caption: "Olga Orozco", value: 9 },
-							{ caption: "Juan L. Ortiz", value: 10 },
-							{ caption: "Alicia Partnoy", value: 11 },
-							{ caption: "Roberto Payro", value: 12 },
-							{ caption: "Ricardo Piglia", value: 13 },
-							{ caption: "Felipe Pigna", value: 14 },
-							{ caption: "Alejandra Pizarnik", value: 15 },
-							{ caption: "Antonio Porchia", value: 16 },
-							{ caption: "Juan Carlos Portantiero", value: 17 },
-							{ caption: "Manuel Puig", value: 18 },
-							{ caption: "Andres Rivera", value: 19 },
-							{ caption: "Mario Rodriguez Cobos", value: 20 },
-							{ caption: "Arturo Andres Roig", value: 21 },
-							{ caption: "Ricardo Rojas", value: 22 }
+							{ caption: "Zuriel Barron", value: 1, email: 'zuriel@gmail.com'},
+							{ caption: "Osvaldo Tierra", value: 2},
+							{ caption: "Manuel Mujica Lainez", value: 4, email: 'manuel@gmail.com' },
+							{ caption: "Gustavo Nielsen", value: 5, email: 'gustavo@gmail.com' },
+							{ caption: "Silvina Ocampo", value: 6},
+							{ caption: "Victoria Ocampo", value: 7, email: 'victoria@gmail.com' },
+							{ caption: "Hector German Oesterheld", value: 8, email: 'hector@gmail.com' },
+							{ caption: "Olga Orozco", value: 9, email: 'olga@gmail.com' },
+							{ caption: "Juan L. Ortiz", value: 10, email: 'juan@gmail.com' },
+							{ caption: "Alicia Partnoy", value: 11, email: 'alicia@gmail.com' },
+							{ caption: "Roberto Payro", value: 12, email: 'roberto@gmail.com' },
+							{ caption: "Ricardo Piglia", value: 13, email: 'ricardo@gmail.com' },
+							{ caption: "Felipe Pigna", value: 14, email: 'felipe@gmail.com' },
+							{ caption: "Alejandra Pizarnik", value: 15, email: 'alejandra@gmail.com' },
+							{ caption: "Antonio Porchia", value: 16, email: 'antonio@gmail.com' },
+							{ caption: "Juan Carlos Portantiero", value: 17, email: 'juan@gmail.com' },
+							{ caption: "Manuel Puig", value: 18, email: 'manuelp@gmail.com' },
+							{ caption: "Andres Rivera", value: 19, email: 'andres@gmail.com' },
+							{ caption: "Mario Rodriguez Cobos", value: 20, email: 'mario@gmail.com' },
+							{ caption: "Arturo Andres Roig", value: 21, email: 'arturo@gmail.com' },
+							{ caption: "Ricardo Rojas", value: 22, email: 'ricardo@gmail.com' }
 						];
 
 	          control = new ProtoMultiSelect('demo', 'demo-autocomplete', {
@@ -120,6 +130,8 @@
 							jsonInputValue: true,
 							onUserAdd: function(el) { console.log("onAdd: " + new Hash(el).inspect()); },
 							onUserRemove: function(el) { console.log("onRemove: " + new Hash(el).inspect()); },						
+							pinAutoHolder: true,
+							renderItem: function(item) { return "item html here " + item.caption }
 						});
 	        });    
 	    </script>

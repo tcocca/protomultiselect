@@ -563,7 +563,7 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 			fetchMethod: 'get',
 			fetchParameters: {},
 			results: 10,
-			maxResults: 0, // 0 = set to default (which is 10 (see MultiSelect class)),
+			maxResults: 0, 						// 0 = set to default (which is 10 (see MultiSelect class)),
 			wordMatch: false,
 			onEmptyInput: function(input){},
 			onUserAdd: function(elem){},  	// use this instead of onAdd to get user actions
@@ -571,12 +571,14 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 			caseSensitive: false,
 			regexSearch: true,
 			loadFromInput: true,
-			defaultMessage: "",	// Used to provide the default autocomplete message if built by the control
-			inputMessage: null, // Used to provide a default message in the input box
+			defaultMessage: "",					// Used to provide the default autocomplete message if built by the control
+			inputMessage: null, 					// Used to provide a default message in the input box
 			sortResults: false,
-			allowDuplicates: false, // prevent dupes by checking for duplicate normalized captions
+			allowDuplicates: false, 			// prevent dupes by checking for duplicate normalized captions
 			autoDelay: 250,
-			autoResize: false
+			autoResize: false,
+			pinAutoHolder: false,				// when true, will not show/hide holder
+			renderItem: null						// when set to function(item) { ... }, will take return value for value
 		}).update(options);
 
 		$super(element, options);
@@ -790,7 +792,8 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 					
 					var that = this;
 					var el = new Element('li');
-					var caption = result.evalJSON(true).caption;
+					var el_data = result.evalJSON(true)
+					var caption = el_data.caption;
 					
 					el.observe('click', function(e)
 						{
@@ -799,7 +802,13 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 							that.autoAdd(this);
 						})
 						.observe('mouseover', function() { that.autoFocus(this); } )
-						.update(this.autoHighlight(caption, search));
+					
+					if (this.options.get('renderItem')) {
+						el.update(this.options.get('renderItem')(el_data));
+					} else {
+						el.update(this.autoHighlight(caption, search));
+					}
+						
 					
 					this.autoresults.insert(el);
 					el.cacheData('result', result.evalJSON(true));
@@ -812,23 +821,29 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 			}
 		}
 	
-		if (count == 0) {
-			// if there are no results, hide everything so that KEY_RETURN has no effect
-			this.autocurrent = false;
-			this.autoHide();
-		} else {
-			if (this.autoresults.firstDescendant()) {
-				var autoresult_height = this.autoresults.firstDescendant().offsetHeight + 1;
-
-				if (count > this.options.get('results')) {
-					this.autoresults.setStyle({'height': (this.options.get('results') * autoresult_height) + 'px'});
-				} else {
-					this.autoresults.setStyle({'height': (count ? (count * autoresult_height) : 0) + 'px'});
-				}
+		if (!this.options.get('pinAutoHolder')) {
+			if (count == 0) {
+				// if there are no results, hide everything so that KEY_RETURN has no effect
+				this.autocurrent = false;
+				this.autoHide();
+			} else {
+				this.autoSizeHolder(count);
 			}
 		}
 		
 		return this;
+	},
+	
+	autoSizeHolder: function(count) {
+		if (this.autoresults.firstDescendant()) {
+			var autoresult_height = this.autoresults.firstDescendant().offsetHeight + 1;
+
+			if (count > this.options.get('results')) {
+				this.autoresults.setStyle({'height': (this.options.get('results') * autoresult_height) + 'px'});
+			} else {
+				this.autoresults.setStyle({'height': (count ? (count * autoresult_height) : 0) + 'px'});
+			}
+		}
 	},
 	
 	autoHighlight: function(html, highlight)
@@ -843,8 +858,10 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 
 	autoHide: function()
 	{
-		this.resultsshown = false;
-		this.autoholder.hide();
+		if (!this.options.get('pinAutoHolder')) {
+			this.resultsshown = false;
+			this.autoholder.hide();
+		}
 		return this;
 	},
 
