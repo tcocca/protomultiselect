@@ -652,19 +652,27 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 		// Setup inputmessage
 		this.inputElem = this.maininput.firstDescendant(); 
 		if (this.options.get('inputMessage')) {
-			this.inputElem.setValue(this.options.get('inputMessage'));
-			this.inputElem.retrieveData('resizable').setElementWidth();
-			this.messageCleared = false;
-			this.inputElem.addClassName('inputMessage');
+			
+			var setupMessage = function(e) {
+				if (this.inputElem.value.blank()) {
+					this.inputElem.setValue(this.options.get('inputMessage'));
+					this.inputElem.addClassName('inputMessage');
+					this.inputElem.retrieveData('resizable').setElementWidth();
+				}
+			}.bindAsEventListener(this);
+			this.inputElem.observe('blur', setupMessage);
+			setupMessage();
+			
 			this.inputElem.observe('focus', function(e) {
-				if (!this.messageCleared) {
+				if (this.inputElem.value == this.options.get('inputMessage')) {
 					this.inputElem.setValue('');
 					this.inputElem.removeClassName('inputMessage');
-					this.messageCleared = true;	
 				}
 			}.bindAsEventListener(this));
+			
 		}
 	},
+	
 	add: function($super, elem) {
 		this.autoClear();
 		
@@ -722,6 +730,7 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 	},
 	
 	autoShow: function(search) {
+		if (this.options.get('inputMessage') && search == this.options.get('inputMessage')) return;
 		this.autoholder.setStyle({'display': 'block'});
 		this.autoClear();
 		
