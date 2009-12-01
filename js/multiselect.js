@@ -578,7 +578,8 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 			autoDelay: 250,
 			autoResize: false,
 			pinAutoHolder: false,				// when true, will not show/hide holder
-			renderItem: null						// when set to function(item) { ... }, will take return value for value
+			renderItem: null,						// when set to function(item) { ... }, will take return value for value
+			sortFunction: null					// function(a, b) { return ((a.score || 0)-(b.score || 0)); }
 		}).update(options);
 
 		$super(element, options);
@@ -777,7 +778,11 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 			}
 			
 			if (this.options.get('sortResults')) {
-				matches = matches.sortBy(function(el) { return el.evalJSON(true).caption });
+				if (this.options.get('sortFunction')) {
+					matches = matches.sort(this.options.get('sortFunction'));
+				} else {
+					matches = matches.sortBy(function(el) { return el.evalJSON(true).caption });
+				}
 			}
 			
 			var count = 0;

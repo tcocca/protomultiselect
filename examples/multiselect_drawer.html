@@ -77,7 +77,7 @@
 	      <ol>        
 	        <li id="proto-ms-list" class="input-text">
 	          <label>MultiSelect Input</label>
-	          <input type="text" value="[{&quot;caption&quot;:&quot;Zuriel Barron&quot;,&quot;value&quot;:1},{&quot;caption&quot;:&quot;Osvaldo Tierra&quot;, &quot;value&quot;: 2}]" id="demo" />
+	          <input type="text" value="[{&quot;caption&quot;:&quot;Zuriel Barron&quot;,&quot;value&quot;:1,&quot;email&quot;:&quot;zuriel@gmail.com&quot;},{&quot;caption&quot;:&quot;Osvaldo Tierra&quot;, &quot;value&quot;: 2}]" id="demo" />
 	        </li>
 	      </ol>
 	    </form>  
@@ -133,12 +133,13 @@
 							pinAutoHolder: true,
 							renderItem: function(item) { 
 								if (item.email) {
-									return "item html here " + item.caption + "<br>" + item.email;
+									return "<b>" + item.caption + "</b> ("+ item.value +")<br>" + item.email;
 								} else {
-									return "item html here " + item.caption + "<br> no email";
-								}
-								
-							}
+									return "<b>" + item.caption + "</b>("+ item.value +")<br> no email";
+								}								
+							},
+							sortFunction: function(a, b) { return ((b.value || 0)-(a.value || 0)); }  // e.g. sort reverse by value
+							
 						});
 	        });    
 	    </script>
