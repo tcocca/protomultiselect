@@ -47,7 +47,7 @@ Element.addMethods({
 	
 	onInputFocus: function(el, obj)
 	{
-		if (obj.autoShow) obj.autoShow();
+		if (obj.autoShowInputFocus) obj.autoShowInputFocus();
 	},
 	
 	onInputBlur: function(el, obj)
@@ -666,6 +666,8 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 		}
 	},
 	add: function($super, elem) {
+		this.autoClear();
+		
 		var retval = $super(elem);
 		this.selectedValues.set(retval.getAttribute('id'), elem);
 		return retval;
@@ -710,10 +712,18 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 		
 		return retval;
 	},
+	autoClear: function() {
+		this.autoholder.descendants().each(function(e) { e.hide(); });
+		this.resultsshown = false;
+	},
+	autoShowInputFocus: function() {
+		if (!this.options.get('pinAutoHolder')) this.autoShow();
+		return true;
+	},
 	
 	autoShow: function(search) {
 		this.autoholder.setStyle({'display': 'block'});
-		this.autoholder.descendants().each(function(e) { e.hide(); });
+		this.autoClear();
 		
 		if (!search || !search.strip() || (!search.length || search.length < this.loptions.get('autocomplete').minchars)) {
 			if (this.autoholder.select('.default').first()) {

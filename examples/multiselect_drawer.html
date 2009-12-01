@@ -131,7 +131,14 @@
 							onUserAdd: function(el) { console.log("onAdd: " + new Hash(el).inspect()); },
 							onUserRemove: function(el) { console.log("onRemove: " + new Hash(el).inspect()); },						
 							pinAutoHolder: true,
-							renderItem: function(item) { return "item html here " + item.caption }
+							renderItem: function(item) { 
+								if (item.email) {
+									return "item html here " + item.caption + "<br>" + item.email;
+								} else {
+									return "item html here " + item.caption + "<br> no email";
+								}
+								
+							}
 						});
 	        });    
 	    </script>
