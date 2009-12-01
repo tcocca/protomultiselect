@@ -717,7 +717,7 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 		this.resultsshown = false;
 	},
 	autoShowInputFocus: function() {
-		if (!this.options.get('pinAutoHolder')) this.autoShow();
+		this.autoShow(this.inputElem.value.escapeHTML());
 		return true;
 	},
 	
@@ -734,7 +734,7 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 		} else {
 			this.resultsshown = true;
 			this.autoresults.setStyle({'display': 'block'}).update('');
-			
+
 			if (!this.options.get('regexSearch')) {
 				var matches = new Array();
 				if (search) {
