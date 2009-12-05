@@ -705,9 +705,12 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 	insertCurrent: function($super, elem) { 
 		var retval = false;
 		var new_value_el = this.current.retrieveData('input');
+		var value = new_value_el.value;
+		if (!value || value == '') return false;
+		var values = value.split(/,/).compact().without('');
 		
 		// handle pasted commas
-		new_value_el.value.split(/,/).each(function(new_value) { 
+		values.each(function(new_value) { 
 			if (new_value && new_value != '' && this.isSearchInsertable(new_value)) {
 				new_value = new_value.strip();
 				new_value_el.value = new_value;
