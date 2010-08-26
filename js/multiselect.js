@@ -867,12 +867,12 @@ var ProtoMultiSelect = Class.create(TextboxList, {
 	autoFeed: function(text)
 	{
 		var with_case = this.options.get('caseSensitive');
-		if (this.data.indexOf(Object.toJSON(text)) == -1)
-		{
+		//if (this.data.indexOf(Object.toJSON(text)) == -1)
+		//{
 			this.data.push(Object.toJSON(text));
 			var data_searchable = Object.toJSON(text).evalJSON(true).caption.unentitizeHTML();
 			this.data_searchable.push(with_case ? data_searchable : data_searchable.toLowerCase());
-		}
+		//}
 		return this;
 	},
 
